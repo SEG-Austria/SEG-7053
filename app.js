@@ -84,4 +84,5 @@ window.login = async () => {
     updateStatus("Login fehlgeschlagen ❌");
     console.error("Login Error:", e.code);
   }
+  Object.assign(window, { register, login });
 };
