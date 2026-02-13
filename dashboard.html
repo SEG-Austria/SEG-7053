@@ -2,36 +2,37 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>SEG - Mitgliederbereich</title>
-    <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #444; text-align: left; }
-        th { background: #333; }
-        .role-badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-        .Admin { background: #ff4444; }
-        .Elite { background: #aa66cc; }
-        .Gräber { background: #33b5e5; }
-        .Rekrut { background: #99cc00; }
-    </style>
+    <title>SEG - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>📋 SEG Mitgliederliste</h1>
-    <p id="welcomeMsg">Lade Profil...</p>
-    <button onclick="window.logout()" style="background-color: #555; color: white; padding: 10px; border: none; cursor: pointer;">
-  🚪 Abmelden
-</button>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Rang</th>
-            </tr>
-        </thead>
-        <tbody id="memberList"></tbody>
-    </table>
+    <div class="header">
+        <img src="logo.png" alt="SEG Logo" class="logo">
+        <h1>SEG – Mitgliederbereich</h1>
+    </div>
 
-    <button onclick="logout()" style="margin-top:20px;">Abmelden</button>
+    <div class="container" style="max-width: 600px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="welcomeMsg">Lade Profil...</h3>
+            <button onclick="window.logout()" style="width: auto; background: #444; color: white; padding: 5px 15px;">Abmelden</button>
+        </div>
+
+        <p style="color: var(--primary-gold); font-size: 0.9em;">Hier findest du alle aktiven Mitglieder der Super Elite Gräber:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Rang</th>
+                </tr>
+            </thead>
+            <tbody id="memberList"></tbody>
+        </table>
+
+        <div id="adminLink" style="margin-top: 20px; text-align: center; display: none;">
+            <a href="admin.html" style="color: var(--primary-gold); text-decoration: none; font-size: 0.8em; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 4px;">🛡️ Admin Panel</a>
+        </div>
+    </div>
 
     <script type="module" src="dashboard.js"></script>
 </body>
