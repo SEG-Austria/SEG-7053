@@ -13,6 +13,40 @@
     border-radius: 50%;
     margin-right: 5px;
 }
+/* Styling für die Log-Box */
+.log-container {
+    max-height: 250px; 
+    overflow-y: auto; 
+    background: #0a0a0a; 
+    padding: 15px; 
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-gold);
+    font-family: 'Courier New', Courier, monospace; /* Terminal Look */
+}
+
+/* Schicker Scrollbar für Chrome/Safari */
+.log-container::-webkit-scrollbar {
+    width: 6px;
+}
+.log-container::-webkit-scrollbar-track {
+    background: #111;
+}
+.log-container::-webkit-scrollbar-thumb {
+    background: var(--primary-gold);
+    border-radius: 10px;
+}
+
+/* Einzelne Log-Einträge */
+.log-item {
+    border-bottom: 1px solid #222;
+    padding: 8px 0;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 body {
   background-color: var(--dark-bg);
   color: var(--text-light);
