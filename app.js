@@ -29,10 +29,30 @@ function fakeEmail(username) {
 }
 
 // 🟢 REGISTRIEREN
+//window.register = async () => {
+//  alert("Registration nur beim Besitzer und Web Administrator möglich.");
+//};
 window.register = async () => {
-  alert("Registration nur beim Besitzer und Web Administrator möglich.");
-};
+  const u = username.value;
+  const p = password.value;
 
+  try {
+    const cred = await createUserWithEmailAndPassword(
+      auth,
+      fakeEmail(u),
+      p
+    );
+
+    await setDoc(doc(db, "users", cred.user.uid), {
+      username: u,
+      role: "Rekrut"
+    });
+
+    status.innerText = "Registriert ✔ Rolle: Rekrut";
+  } catch (e) {
+    status.innerText = e.message;
+  }
+};
 // 🔵 LOGIN
 window.login = async () => {
   const u = username.value;
