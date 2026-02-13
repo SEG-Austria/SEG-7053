@@ -16,11 +16,22 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // 🔐 Prüfen ob angemeldet
-onAuthStateChanged(auth, (user) => {
+// ... (nach dem erfolgreichen Laden der Mitgliederliste in dashboard.js) ...
+
+onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = "index.html"; // Nicht eingeloggt? Zurück zum Start!
+        window.location.href = "index.html";
     } else {
-        document.getElementById("welcomeMsg").innerText = `Eingeloggt als: ${user.email}`;
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const userData = snap.data();
+        
+        document.getElementById("welcomeMsg").innerText = `Willkommen, ${userData.username}`;
+        
+        // Zeige Admin-Link nur wenn Rolle Admin ist
+        if (userData.role === "Admin") {
+            document.getElementById("adminLink").style.display = "block";
+        }
+        
         loadMembers();
     }
 });
