@@ -57,21 +57,25 @@ async function loadMembers() {
         const snap = await getDocs(collection(db, "users"));
         list.innerHTML = "";
         
-        snap.forEach(d => {
-            const u = d.data();
-            if (u.banned) return; 
+        // In dashboard.js innerhalb von loadMembers():
+snap.forEach(d => {
+    const u = d.data();
+    if (u.banned) return;
 
-            // CSS Klasse "säubern" (für Rollen mit Leerzeichen)
-            const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
+    // Status-Farbe bestimmen
+    let statusColor = "#99cc00"; // Grün
+    if (u.status === "Abwesend (Entschuldigt)") statusColor = "#ffbb33"; // Gelb
+    if (u.status === "Abwesend (Unentschuldigt)") statusColor = "#ff4444"; // Rot
 
-            const row = `
-                <tr>
-                    <td>${u.username || "Unbekannt"}</td>
-                    <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
-                </tr>
-            `;
-            list.innerHTML += row;
-        });
+    const row = `
+        <tr>
+            <td>${u.username}</td>
+            <td><span class="role-badge ${u.role ? u.role.split(' ')[0] : ''}">${u.role}</span></td>
+            <td><span style="color: ${statusColor}; font-weight: bold;">● ${u.status || "Anwesend"}</span></td>
+        </tr>
+    `;
+    list.innerHTML += row;
+});
     } catch (e) {
         console.error("Fehler beim Laden der Mitglieder:", e);
         list.innerHTML = "<tr><td colspan='2'>Fehler beim Laden der Liste.</td></tr>";
