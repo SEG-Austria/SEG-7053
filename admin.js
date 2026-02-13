@@ -93,7 +93,19 @@ async function loadUsers() {
 
         snap.forEach(d => {
             const u = d.data();
-            const roles = ["Rekrut", "Gräber", "Elite", "Admin"];
+            // In der loadUsers Funktion deiner admin.js
+            const roles = [
+                "Anfänger", 
+                "Schlechter Arbeiter", 
+                "Mittelmäßiger Arbeiter", 
+                "Guter Arbeiter", 
+                "Bester Arbeiter", 
+                "General", 
+                "Co-Anführer", 
+                "Anführer", 
+                "Krank / Vorübergehend nicht verfügbar", 
+                "Admin"
+            ];
             
             const row = document.createElement("tr");
             row.innerHTML = `
