@@ -1,6 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, collection, getDocs, doc, getDoc, 
+    query, orderBy, limit 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
@@ -14,30 +17,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-async function loadLogs() {
-    const logList = document.getElementById("logList");
-    try {
-        // Hol die letzten 10 Änderungen
-        const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-        const snap = await getDocs(q);
-        
-        logList.innerHTML = "";
-        snap.forEach(d => {
-            const l = d.data();
-            const time = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
-            logList.innerHTML += `<div style="border-bottom: 1px solid #333; padding: 5px 0;">
-                <span style="color: var(--primary-gold);">${time}</span>: 
-                <strong>${l.targetUser}</strong> wurde auf <em>${l.newStatus}</em> gesetzt.
-            </div>`;
-        });
-    } catch (e) {
-        logList.innerHTML = "Keine Logs verfügbar.";
-    }
-}
-// 🔐 Authentifizierung prüfen
+
+// 🔐 Auth Check
 onAuthStateChanged(auth, async (user) => {
     const msgEl = document.getElementById("welcomeMsg");
-    
     if (!user) {
         window.location.href = "index.html";
         return;
@@ -45,74 +28,86 @@ onAuthStateChanged(auth, async (user) => {
 
     try {
         const snap = await getDoc(doc(db, "users", user.uid));
-        
         if (snap.exists()) {
             const userData = snap.data();
             msgEl.innerText = `Glück auf, ${userData.username}!`;
             
-            // Admin-Link anzeigen falls berechtigt
-            const adminDiv = document.getElementById("adminLink");
-            if (adminDiv && userData.role === "Admin") {
-                adminDiv.style.display = "block";
+            if (userData.role === "Admin") {
+                document.getElementById("adminLink").style.display = "block";
             }
             
+            // Beides laden
             loadMembers();
             loadLogs();
-        } else {
-            msgEl.innerText = "Profil nicht gefunden.";
         }
-    } catch (error) {
-        console.error("Dashboard Fehler:", error);
+    } catch (e) {
+        console.error(e);
     }
 });
 
-// 📋 Mitgliederliste mit Anwesenheit laden
+// 📋 Mitgliederliste
 async function loadMembers() {
     const list = document.getElementById("memberList");
-    if (!list) return;
-
     try {
         const snap = await getDocs(collection(db, "users"));
-        list.innerHTML = "";
-        
+        let members = [];
         snap.forEach(d => {
-            const u = d.data();
-            if (u.banned) return; // Gesperrte ausblenden
+            if (!d.data().banned) members.push(d.data());
+        });
 
-            // 1. Rollen-Klasse säubern (für CSS)
-            const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
+        // Sortierung: Anwesend zuerst
+        members.sort((a, b) => {
+            const order = { "Anwesend": 1, "Keine Schicht": 2, "Abwesend (Entschuldigt)": 3, "Abwesend (Unentschuldigt)": 4 };
+            return (order[a.status] || 5) - (order[b.status] || 5);
+        });
 
-            // 2. Status-Farbe bestimmen
-            // 2. Status-Farbe bestimmen und Text aus der Datenbank übernehmen
-let statusText = u.status || "Anwesend"; // Fallback, falls das Feld leer ist
-let statusColor = "#99cc00"; // Standard: Grün
+        list.innerHTML = "";
+        members.forEach(u => {
+            let statusColor = "#99cc00";
+            if (u.status === "Keine Schicht") statusColor = "#33b5e5";
+            else if (u.status?.includes("Entschuldigt")) statusColor = "#ffbb33";
+            else if (u.status?.includes("Unentschuldigt")) statusColor = "#ff4444";
 
-if (statusText.includes("Entschuldigt")) {
-    statusColor = "#ffbb33"; // Gelb
-} else if (statusText.includes("Unentschuldigt")) {
-    statusColor = "#ff4444"; // Rot
+            list.innerHTML += `
+                <tr>
+                    <td>${u.username}</td>
+                    <td><span class="role-badge ${u.role?.split(' ')[0]}">${u.role}</span></td>
+                    <td><span style="color: ${statusColor};">● ${u.status || "Anwesend"}</span></td>
+                </tr>
+            `;
+        });
+    } catch (e) { console.error(e); }
 }
 
-const row = document.createElement("tr");
-row.innerHTML = `
-    <td>${u.username || "Unbekannt"}</td>
-    <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
-    <td><span style="color: ${statusColor};">● ${statusText}</span></td>
-`;
-            list.appendChild(row);
+// 📜 Log-System
+async function loadLogs() {
+    const logBox = document.getElementById("logList");
+    try {
+        // WICHTIG: query, orderBy und limit müssen importiert sein!
+        const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            logBox.innerHTML = "Noch keine Aktivitäten aufgezeichnet.";
+            return;
+        }
+
+        logBox.innerHTML = "";
+        snap.forEach(d => {
+            const l = d.data();
+            const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
+            logBox.innerHTML += `
+                <div style="border-bottom: 1px solid #333; padding: 5px 0; font-size: 0.9em;">
+                    <span style="color: #c5a059;">[${zeit}]</span><br>
+                    <strong>${l.targetUser}</strong> → <span style="color: #eee;">${l.newStatus}</span>
+                </div>
+            `;
         });
     } catch (e) {
-        console.error("Listen-Fehler:", e);
-        list.innerHTML = "<tr><td colspan='3'>Fehler beim Laden der Liste.</td></tr>";
+        console.error("Log-Fehler:", e);
+        // Falls der Index noch fehlt, zeigt Firebase einen Link in der Konsole an!
+        logBox.innerHTML = "Fehler beim Laden. (Prüfe Browser-Konsole)";
     }
 }
 
-// 🚪 Logout
-window.logout = async () => {
-    try {
-        await signOut(auth);
-        window.location.href = "index.html";
-    } catch (e) {
-        console.error("Logout fehlgeschlagen", e);
-    }
-};
+window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
