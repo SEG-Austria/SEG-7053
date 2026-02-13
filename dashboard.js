@@ -15,66 +15,74 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔐 Prüfen ob angemeldet
+// 🔐 Authentifizierung prüfen
 onAuthStateChanged(auth, async (user) => {
     const msgEl = document.getElementById("welcomeMsg");
     
     if (!user) {
-        console.log("Kein User eingeloggt, leite weiter...");
         window.location.href = "index.html";
         return;
     }
 
     try {
-        console.log("User eingeloggt:", user.uid);
         const snap = await getDoc(doc(db, "users", user.uid));
         
         if (snap.exists()) {
             const userData = snap.data();
-            msgEl.innerText = `Willkommen, ${userData.username || "Mitglied"}`;
+            msgEl.innerText = `Glück auf, ${userData.username}!`;
             
             // Admin-Link anzeigen falls berechtigt
-            const adminBtn = document.getElementById("adminLink");
-            if (adminBtn && userData.role === "Admin") {
-                adminBtn.style.display = "block";
+            const adminDiv = document.getElementById("adminLink");
+            if (adminDiv && userData.role === "Admin") {
+                adminDiv.style.display = "block";
             }
             
             loadMembers();
         } else {
-            msgEl.innerText = "Fehler: User-Profil nicht in Datenbank gefunden.";
-            console.error("Kein Firestore-Dokument für UID:", user.uid);
+            msgEl.innerText = "Profil nicht gefunden.";
         }
     } catch (error) {
-        msgEl.innerText = "Fehler beim Laden des Profils.";
-        console.error("Dashboard Error:", error);
+        console.error("Dashboard Fehler:", error);
     }
 });
 
-// 📋 Liste laden
+// 📋 Mitgliederliste mit Anwesenheit laden
 async function loadMembers() {
     const list = document.getElementById("memberList");
+    if (!list) return;
+
     try {
         const snap = await getDocs(collection(db, "users"));
         list.innerHTML = "";
         
         snap.forEach(d => {
             const u = d.data();
-            if (u.banned) return; 
+            if (u.banned) return; // Gesperrte ausblenden
 
-            // CSS Klasse "säubern" (für Rollen mit Leerzeichen)
+            // 1. Rollen-Klasse säubern (für CSS)
             const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
 
-            const row = `
-                <tr>
-                    <td>${u.username || "Unbekannt"}</td>
-                    <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
-                </tr>
+            // 2. Status-Farbe bestimmen
+            let statusHTML = "";
+            if (u.status === "Abwesend (Entschuldigt)") {
+                statusHTML = `<span style="color: #ffbb33;">● Entschuldigt</span>`;
+            } else if (u.status === "Abwesend (Unentschuldigt)") {
+                statusHTML = `<span style="color: #ff4444;">● Unentschuldigt</span>`;
+            } else {
+                statusHTML = `<span style="color: #99cc00;">● Anwesend</span>`;
+            }
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${u.username || "Unbekannt"}</td>
+                <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
+                <td>${statusHTML}</td>
             `;
-            list.innerHTML += row;
+            list.appendChild(row);
         });
     } catch (e) {
-        console.error("Fehler beim Laden der Mitglieder:", e);
-        list.innerHTML = "<tr><td colspan='2'>Fehler beim Laden der Liste.</td></tr>";
+        console.error("Listen-Fehler:", e);
+        list.innerHTML = "<tr><td colspan='3'>Fehler beim Laden der Liste.</td></tr>";
     }
 }
 
@@ -84,6 +92,6 @@ window.logout = async () => {
         await signOut(auth);
         window.location.href = "index.html";
     } catch (e) {
-        console.error("Logout Fehler", e);
+        console.error("Logout fehlgeschlagen", e);
     }
 };
