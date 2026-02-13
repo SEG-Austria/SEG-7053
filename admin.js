@@ -81,20 +81,16 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const snap = await getDocs(collection(db, "users"));
-  let me;
+  const snap = await getDoc(doc(db, "users", user.uid));
 
-  snap.forEach(d => {
-    if (d.id === user.uid) me = d.data();
-  });
-
-  if (!me || me.role !== "Admin") {
-    document.body.innerHTML = "Kein Zugriff ❌";
+  if (!snap.exists() || snap.data().role !== "Admin") {
+    document.body.innerHTML = "Kein Admin ❌ Zugriff verweigert";
     return;
   }
 
-  loadUsers();
+  loadUsers(); // erst jetzt!
 });
+
 
 // 📋 User laden
 async function loadUsers() {
