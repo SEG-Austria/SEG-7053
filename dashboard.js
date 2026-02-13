@@ -92,17 +92,21 @@ async function loadLogs() {
             return;
         }
 
-        logBox.innerHTML = "";
-        snap.forEach(d => {
-            const l = d.data();
-            const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
-            logBox.innerHTML += `
-                <div style="border-bottom: 1px solid #333; padding: 5px 0; font-size: 0.9em;">
-                    <span style="color: #c5a059;">[${zeit}]</span><br>
-                    <strong>${l.targetUser}</strong> → <span style="color: #eee;">${l.newStatus}</span>
-                </div>
-            `;
-        });
+       // In dashboard.js innerhalb von loadLogs()
+logBox.innerHTML = "";
+snap.forEach(d => {
+    const l = d.data();
+    const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
+    
+    // Hier nutzen wir die neue Klasse .log-item
+    logBox.innerHTML += `
+        <div class="log-item">
+            <span style="color: #888; font-size: 0.8em;">[${zeit}]</span><br>
+            <strong style="color: var(--primary-gold);">${l.targetUser}</strong> 
+            <span style="color: #eee;">→ ${l.newStatus}</span>
+        </div>
+    `;
+});
     } catch (e) {
         console.error("Log-Fehler:", e);
         // Falls der Index noch fehlt, zeigt Firebase einen Link in der Konsole an!
