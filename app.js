@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -13,17 +13,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// --- Hilfsfunktion für Status-Updates ---
+// Hilfsfunktion für Status-Anzeigen
 function updateStatus(text) {
   const statusEl = document.getElementById("status");
-  if (statusEl) {
-    statusEl.innerText = text;
-  } else {
-    console.log("Status-Update:", text);
-  }
+  if (statusEl) statusEl.innerText = text;
 }
 
 // 🟢 REGISTRIEREN
@@ -45,14 +41,17 @@ window.register = async () => {
       role: "Rekrut",
       banned: false
     });
-    updateStatus("Registriert ✔");
+    updateStatus("Registriert ✔ Logge dich jetzt ein.");
   } catch (e) {
-    updateStatus("Fehler: " + e.code);
-    console.error(e);
+    if (e.code === "auth/email-already-in-use") {
+      updateStatus("Name bereits vergeben ❌");
+    } else {
+      updateStatus("Fehler: " + e.code);
+    }
   }
 };
 
-// 🔵 LOGIN
+// 🔵 LOGIN mit Weiterleitung
 window.login = async () => {
   const u = document.getElementById("username").value.trim();
   const p = document.getElementById("password").value;
@@ -74,15 +73,36 @@ window.login = async () => {
     }
 
     const userData = snap.data();
+
     if (userData.banned) {
       updateStatus("Du bist gesperrt 🚫");
+      await signOut(auth);
       return;
     }
 
-    updateStatus("Login ✔ Rolle: " + userData.role);
+    updateStatus("Login erfolgreich! Leite weiter...");
+
+    // Weiterleitungs-Logik nach Rolle
+    setTimeout(() => {
+      if (userData.role === "Admin") {
+        window.location.href = "admin.html";
+      } else {
+        window.location.href = "dashboard.html";
+      }
+    }, 800);
+
   } catch (e) {
     updateStatus("Login fehlgeschlagen ❌");
-    console.error("Login Error:", e.code);
+    console.error(e.code);
   }
-  Object.assign(window, { register, login });
+};
+
+// 🔴 LOGOUT Funktion (global nutzbar)
+window.logout = async () => {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch (e) {
+    console.error("Logout Fehler", e);
+  }
 };
