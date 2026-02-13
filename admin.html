@@ -8,6 +8,21 @@
 
 <h1>🛡️ SEG Admin Panel</h1>
 <p id="status"></p>
+<h2>➕ Neuen User erstellen</h2>
+
+<input id="newUsername" placeholder="Username">
+<input id="newPassword" type="password" placeholder="Passwort">
+
+<select id="newRole">
+  <option>Rekrut</option>
+  <option>Gräber</option>
+  <option>Elite</option>
+  <option>Admin</option>
+</select>
+
+<button onclick="createUser()">User erstellen</button>
+
+<hr>
 
 <table border="1">
   <thead>
