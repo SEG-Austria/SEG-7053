@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>SEG Login</title>
+    <meta charset="UTF-8">
+    <title>SEG - Login</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="header">
+        <img src="https://lh3.googleusercontent.com/d/1_T07pXUoKx_Kk6X-Lq9R0_fV_S_H9_zS" class="logo">
+        <h1>SEG – Super Elite Gräber</h1>
+    </div>
 
-<h1>SEG – Super Elite Gräber</h1>
+    <div class="container">
+        <h2>Anmeldung</h2>
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Passwort">
+        <button onclick="window.login()">Login</button>
+        <button onclick="window.register()" style="background: none; color: var(--primary-gold); margin-top: 10px;">Jetzt Registrieren</button>
+        <p id="status" class="status"></p>
+    </div>
 
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Passwort">
-
-<button onclick="window.register()">Registrieren</button>
-<button onclick="window.login()">Login</button>
-
-<p id="status"></p>
-
-<script type="module" src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
