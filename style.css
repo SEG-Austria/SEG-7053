@@ -128,9 +128,9 @@ th, td {
   text-align: left;
 }
 /* Farben für die neuen Rollen im Dashboard */
-.Guter { background: #99cc00; } /* Grün */
+.Guter { background: #99cc00; color: black} /* Grün */
 .General { background: #ffbb33; color: black; } /* Orange */
-.Anführer { background: #ffd700; } /* Gold */
+.Anführer { background: #ffd700; color: black;} /* Gold */
 .Krank { background: #888; } /* Grau für Abwesende */
 /* Tipp: Klassen mit Leerzeichen sind schwierig, 
    man nutzt meistens nur das erste Wort im CSS */
