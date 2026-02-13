@@ -30,25 +30,7 @@ function fakeEmail(username) {
 
 // 🟢 REGISTRIEREN
 window.register = async () => {
-  const u = username.value;
-  const p = password.value;
-
-  try {
-    const cred = await createUserWithEmailAndPassword(
-      auth,
-      fakeEmail(u),
-      p
-    );
-
-    await setDoc(doc(db, "users", cred.user.uid), {
-      username: u,
-      role: "Rekrut"
-    });
-
-    status.innerText = "Registriert ✔ Rolle: Rekrut";
-  } catch (e) {
-    status.innerText = e.message;
-  }
+  alert("Registration nur beim Besitzer und Web Administrator möglich.");
 };
 
 // 🔵 LOGIN
@@ -62,6 +44,10 @@ window.login = async () => {
       fakeEmail(u),
       p
     );
+  if (snap.data().banned) {
+  status.innerText = "Du bist gesperrt 🚫";
+  return;
+}
 
     const snap = await getDoc(doc(db, "users", cred.user.uid));
     status.innerText =
