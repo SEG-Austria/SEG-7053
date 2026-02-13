@@ -35,7 +35,7 @@ const secondaryAuth = getAuth(secondaryApp);
 const roles = [
     "Anfänger", "Schlechter Arbeiter", "Mittelmäßiger Arbeiter", 
     "Guter Arbeiter", "Bester Arbeiter", "General", 
-    "Co-Anführer", "Anführer", "Krank / Vorübergehend nicht verfügbar", "Admin"
+    "Co-Anführer", "Anführer", "Admin"
 ];
 
 const statusOptions = [
