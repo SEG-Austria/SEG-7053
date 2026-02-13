@@ -29,7 +29,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Zweit-App für User-Erstellung
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
@@ -46,7 +45,7 @@ const statusOptions = [
     "Keine Schicht"
 ];
 
-// --- FUNKTIONEN ---
+// --- FUNKTIONEN ZUERST DEFINIEREN ---
 
 async function loadUsers() {
     const userList = document.getElementById("userList");
@@ -82,11 +81,11 @@ async function loadUsers() {
         });
     } catch (e) {
         console.error("Fehler beim Laden:", e);
-        userList.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten.</td></tr>";
     }
 }
 
-// Global machen für HTML-Buttons
+// --- GLOBALE WINDOW-ZOWEISUNGEN ---
+
 window.createUser = async () => {
     const uEl = document.getElementById("newUsername");
     const pEl = document.getElementById("newPassword");
@@ -108,22 +107,30 @@ window.createUser = async () => {
 };
 
 window.setRole = async (uid, newRole) => {
-    await updateDoc(doc(db, "users", uid), { role: newRole });
+    try {
+        await updateDoc(doc(db, "users", uid), { role: newRole });
+    } catch (e) { console.error(e); }
 };
 
 window.setStatus = async (uid, newStatus) => {
-    await updateDoc(doc(db, "users", uid), { status: newStatus });
+    try {
+        await updateDoc(doc(db, "users", uid), { status: newStatus });
+    } catch (e) { console.error(e); }
 };
 
 window.toggleBan = async (uid, isBanned) => {
-    await updateDoc(doc(db, "users", uid), { banned: !isBanned });
-    loadUsers();
+    try {
+        await updateDoc(doc(db, "users", uid), { banned: !isBanned });
+        loadUsers();
+    } catch (e) { console.error(e); }
 };
 
 window.removeUser = async (uid) => {
     if (confirm("Löschen?")) {
-        await deleteDoc(doc(db, "users", uid));
-        loadUsers();
+        try {
+            await deleteDoc(doc(db, "users", uid));
+            loadUsers();
+        } catch (e) { console.error(e); }
     }
 };
 
@@ -132,13 +139,22 @@ window.logout = async () => {
     window.location.href = "index.html";
 };
 
-// --- AUTH CHECK ---
+// --- AUTH CHECK ALS LETZTES ---
+
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = "index.html"; return; }
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists() || snap.data().role !== "Admin") {
-        window.location.href = "dashboard.html";
-    } else {
-        loadUsers();
+    if (!user) { 
+        window.location.href = "index.html"; 
+        return; 
+    }
+    try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!snap.exists() || snap.data().role !== "Admin") {
+            window.location.href = "dashboard.html";
+        } else {
+            // Jetzt ist loadUsers garantiert definiert
+            loadUsers();
+        }
+    } catch (e) {
+        console.error("Auth Check Fehler:", e);
     }
 });
