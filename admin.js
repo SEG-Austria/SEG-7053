@@ -25,12 +25,12 @@ const firebaseConfig = {
     measurementId: "G-C0QLYYD6Q5"
 };
 
-// Haupt-App für Admin-Check
+// --- INITIALISIERUNG ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Zweit-App um neue User zu erstellen, ohne den Admin auszuloggen
+// Zweit-App für User-Erstellung ohne Admin-Logout
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
@@ -38,62 +38,46 @@ function fakeEmail(username) {
     return username.toLowerCase().trim() + "@seg.local";
 }
 
-// --- Funktionen global verfügbar machen ---
+// --- FUNKTIONEN ---
 
+// 1. Neuen User erstellen
 window.createUser = async () => {
-    const u = document.getElementById("newUsername").value.trim();
-    const p = document.getElementById("newPassword").value;
-    const r = document.getElementById("newRole").value;
+    const uEl = document.getElementById("newUsername");
+    const pEl = document.getElementById("newPassword");
+    const rEl = document.getElementById("newRole");
 
-    if (!u || !p) {
-        alert("Username & Passwort fehlen");
+    if (!uEl.value || !pEl.value) {
+        alert("Username & Passwort fehlen!");
         return;
     }
 
     try {
-        // Erstellt den User in Auth (über die Secondary App)
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, fakeEmail(u), p);
-
-        // Erstellt den User-Datensatz in Firestore
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, fakeEmail(uEl.value), pEl.value);
         await setDoc(doc(db, "users", cred.user.uid), {
-            username: u,
-            role: r,
+            username: uEl.value,
+            role: rEl.value,
             banned: false
         });
 
-        alert(`User ${u} als ${r} erstellt ✔`);
+        alert(`User ${uEl.value} erfolgreich erstellt! ✔`);
+        uEl.value = "";
+        pEl.value = "";
         loadUsers();
     } catch (e) {
         alert("Fehler: " + e.message);
     }
 };
 
-// 🔐 Admin-Check & Initialisierung
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        document.body.innerHTML = "<h1>Zugriff verweigert</h1><p>Bitte logge dich zuerst ein.</p>";
-        return;
-    }
-
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists() || snap.data().role !== "Admin") {
-        document.body.innerHTML = "<h1>Kein Admin ❌</h1><p>Du hast keine Berechtigung für diese Seite.</p>";
-        return;
-    }
-
-    loadUsers();
-});
-
-// 📋 User-Liste laden
+// 2. User-Liste laden
 async function loadUsers() {
     const userList = document.getElementById("userList");
     if (!userList) return;
-    
-    userList.innerHTML = "Lade User...";
-    
+
+    userList.innerHTML = "<tr><td colspan='4'>Lade Daten...</td></tr>";
+
     try {
         const snap = await getDocs(collection(db, "users"));
-        userList.innerHTML = "";
+        userList.innerHTML = ""; 
 
         snap.forEach(d => {
             const u = d.data();
@@ -101,7 +85,7 @@ async function loadUsers() {
             
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${u.username}</td>
+                <td>${u.username || "Unbekannt"}</td>
                 <td>
                     <select onchange="window.setRole('${d.id}', this.value)">
                         ${roles.map(r => `<option value="${r}" ${u.role === r ? "selected" : ""}>${r}</option>`).join("")}
@@ -109,30 +93,64 @@ async function loadUsers() {
                 </td>
                 <td>${u.banned ? "🚫 Gesperrt" : "✅ Aktiv"}</td>
                 <td>
-                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">${u.banned ? "Entsperren" : "Sperren"}</button>
-                    <button onclick="window.removeUser('${d.id}')" style="color:red">Löschen</button>
+                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">
+                        ${u.banned ? "Entsperren" : "Sperren"}
+                    </button>
+                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px;">Löschen</button>
                 </td>
             `;
             userList.appendChild(row);
         });
     } catch (e) {
-        console.error("Fehler beim Laden:", e);
+        console.error(e);
+        userList.innerHTML = "<tr><td colspan='4'>Fehler: " + e.message + "</td></tr>";
     }
 }
 
-window.setRole = async (uid, role) => {
-    await updateDoc(doc(db, "users", uid), { role });
-    loadUsers();
-};
-
-window.toggleBan = async (uid, bannedNow) => {
-    await updateDoc(doc(db, "users", uid), { banned: !bannedNow });
-    loadUsers();
-};
-
-window.removeUser = async (uid) => {
-    if (confirm("User-Daten wirklich löschen? (Auth-Account bleibt bestehen)")) {
-        await deleteDoc(doc(db, "users", uid));
-        loadUsers();
+// 3. Rolle ändern
+window.setRole = async (uid, newRole) => {
+    try {
+        await updateDoc(doc(db, "users", uid), { role: newRole });
+        console.log("Rolle aktualisiert");
+    } catch (e) {
+        alert("Fehler: " + e.message);
     }
 };
+
+// 4. Sperren / Entsperren
+window.toggleBan = async (uid, isBanned) => {
+    try {
+        await updateDoc(doc(db, "users", uid), { banned: !isBanned });
+        loadUsers();
+    } catch (e) {
+        alert("Fehler: " + e.message);
+    }
+};
+
+// 5. User löschen
+window.removeUser = async (uid) => {
+    if (confirm("Diesen User wirklich aus der Datenbank löschen?")) {
+        try {
+            await deleteDoc(doc(db, "users", uid));
+            loadUsers();
+        } catch (e) {
+            alert("Fehler: " + e.message);
+        }
+    }
+};
+
+// --- AUTH CHECK ---
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        document.body.innerHTML = "<h2 style='color:red'>Zugriff verweigert. Bitte erst einloggen!</h2>";
+        return;
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists() || snap.data().role !== "Admin") {
+        document.body.innerHTML = "<h2 style='color:red'>Kein Admin-Zugriff für: " + (snap.data()?.username || "unbekannt") + "</h2>";
+        return;
+    }
+
+    loadUsers(); 
+});
