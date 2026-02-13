@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
@@ -14,7 +14,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
+async function loadLogs() {
+    const logList = document.getElementById("logList");
+    try {
+        // Hol die letzten 10 Änderungen
+        const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
+        const snap = await getDocs(q);
+        
+        logList.innerHTML = "";
+        snap.forEach(d => {
+            const l = d.data();
+            const time = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
+            logList.innerHTML += `<div style="border-bottom: 1px solid #333; padding: 5px 0;">
+                <span style="color: var(--primary-gold);">${time}</span>: 
+                <strong>${l.targetUser}</strong> wurde auf <em>${l.newStatus}</em> gesetzt.
+            </div>`;
+        });
+    } catch (e) {
+        logList.innerHTML = "Keine Logs verfügbar.";
+    }
+}
 // 🔐 Authentifizierung prüfen
 onAuthStateChanged(auth, async (user) => {
     const msgEl = document.getElementById("welcomeMsg");
@@ -38,6 +57,7 @@ onAuthStateChanged(auth, async (user) => {
             }
             
             loadMembers();
+            loadLogs();
         } else {
             msgEl.innerText = "Profil nicht gefunden.";
         }
