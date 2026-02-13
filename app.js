@@ -16,19 +16,23 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
+// --- Hilfsfunktion für Status-Updates ---
+function updateStatus(text) {
+  const statusEl = document.getElementById("status");
+  if (statusEl) {
+    statusEl.innerText = text;
+  } else {
+    console.log("Status-Update:", text);
+  }
+}
+
 // 🟢 REGISTRIEREN
 window.register = async () => {
   const u = document.getElementById("username").value.trim();
   const p = document.getElementById("password").value;
-  const statusEl = document.getElementById("status");
 
   if (!u || !p) {
-    if (statusEl) statusEl.innerText = "Username oder Passwort fehlt ❌";
-    return;
-  }
-
-  if (p.length < 6) {
-    if (statusEl) statusEl.innerText = "Passwort muss mind. 6 Zeichen haben ❌";
+    updateStatus("Username oder Passwort fehlt ❌");
     return;
   }
 
@@ -41,9 +45,9 @@ window.register = async () => {
       role: "Rekrut",
       banned: false
     });
-    if (statusEl) statusEl.innerText = "Registriert ✔";
+    updateStatus("Registriert ✔");
   } catch (e) {
-    if (statusEl) statusEl.innerText = "Fehler: " + e.code;
+    updateStatus("Fehler: " + e.code);
     console.error(e);
   }
 };
@@ -52,10 +56,9 @@ window.register = async () => {
 window.login = async () => {
   const u = document.getElementById("username").value.trim();
   const p = document.getElementById("password").value;
-  const statusEl = document.getElementById("status");
 
   if (!u || !p) {
-    if (statusEl) statusEl.innerText = "Bitte Daten eingeben ❌";
+    updateStatus("Bitte Daten eingeben ❌");
     return;
   }
 
@@ -66,20 +69,19 @@ window.login = async () => {
     const snap = await getDoc(doc(db, "users", cred.user.uid));
 
     if (!snap.exists()) {
-      if (statusEl) statusEl.innerText = "Kein User-Datensatz ❌";
+      updateStatus("Kein User-Datensatz ❌");
       return;
     }
 
-    if (snap.data().banned) {
-      if (statusEl) statusEl.innerText = "Du bist gesperrt 🚫";
+    const userData = snap.data();
+    if (userData.banned) {
+      updateStatus("Du bist gesperrt 🚫");
       return;
     }
 
-    if (statusEl) statusEl.innerText = "Login ✔ Rolle: " + snap.data().role;
+    updateStatus("Login ✔ Rolle: " + userData.role);
   } catch (e) {
-    if (statusEl) statusEl.innerText = "Login fehlgeschlagen ❌";
-    console.error(e.code);
+    updateStatus("Login fehlgeschlagen ❌");
+    console.error("Login Error:", e.code);
   }
 };
-
-// HIER DARF NICHTS MEHR STEHEN (keine losen Klammern oder doppelter Code)
