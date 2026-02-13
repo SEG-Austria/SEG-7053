@@ -5,7 +5,14 @@
   --text-light: #e0e0e0;
   --danger: #ff4444;
 }
-
+/* In style.css hinzufügen */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
 body {
   background-color: var(--dark-bg);
   color: var(--text-light);
