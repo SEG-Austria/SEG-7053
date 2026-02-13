@@ -51,8 +51,9 @@ const roles = [
 const statusOptions = [
     "Anwesend", 
     "Abwesend (Entschuldigt)", 
-    "Abwesend (Unentschuldigt)"
-];
+    "Abwesend (Unentschuldigt)",
+    "Keine Schicht" // Neu hinzugefügt
+];;
 
 function fakeEmail(username) {
     return username.toLowerCase().trim() + "@seg.local";
@@ -61,45 +62,56 @@ function fakeEmail(username) {
 // --- FUNKTIONEN ---
 
 // 1. User-Liste laden
-async function loadUsers() {
-    const userList = document.getElementById("userList");
-    if (!userList) return;
-
-    userList.innerHTML = "<tr><td colspan='5'>Lade Daten...</td></tr>";
+async function loadMembers() {
+    const list = document.getElementById("memberList");
+    if (!list) return;
 
     try {
         const snap = await getDocs(collection(db, "users"));
-        userList.innerHTML = ""; 
-
+        let members = [];
+        
         snap.forEach(d => {
             const u = d.data();
-            const row = document.createElement("tr");
+            if (!u.banned) {
+                members.push({ ...u, id: d.id });
+            }
+        });
+
+        // --- SORTIERUNG ---
+        // Anwesend kommt nach oben, dann Keine Schicht, dann Abwesend
+        members.sort((a, b) => {
+            const order = { "Anwesend": 1, "Keine Schicht": 2, "Abwesend (Entschuldigt)": 3, "Abwesend (Unentschuldigt)": 4 };
+            return (order[a.status] || 5) - (order[b.status] || 5);
+        });
+
+        list.innerHTML = "";
+        
+        members.forEach(u => {
+            const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
             
+            // --- FARB-LOGIK ---
+            let statusText = u.status || "Anwesend";
+            let statusColor = "#99cc00"; // Grün (Standard)
+
+            if (statusText === "Keine Schicht") {
+                statusColor = "#33b5e5"; // Hellblau
+            } else if (statusText.includes("Entschuldigt")) {
+                statusColor = "#ffbb33"; // Gelb
+            } else if (statusText.includes("Unentschuldigt")) {
+                statusColor = "#ff4444"; // Rot
+            }
+
+            const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${u.username || "Unbekannt"}</td>
-                <td>
-                    <select onchange="window.setRole('${d.id}', this.value)">
-                        ${roles.map(r => `<option value="${r}" ${u.role === r ? "selected" : ""}>${r}</option>`).join("")}
-                    </select>
-                </td>
-                <td>
-                    <select onchange="window.setStatus('${d.id}', this.value)">
-                        ${statusOptions.map(s => `<option value="${s}" ${u.status === s ? "selected" : ""}>${s}</option>`).join("")}
-                    </select>
-                </td>
-                <td>${u.banned ? "🚫 Gesperrt" : "✅ Aktiv"}</td>
-                <td>
-                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">
-                        ${u.banned ? "Entsperren" : "Sperren"}
-                    </button>
-                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px; background:none; border:1px solid red; cursor:pointer;">Löschen</button>
-                </td>
+                <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
+                <td><span style="color: ${statusColor};">● ${statusText}</span></td>
             `;
-            userList.appendChild(row);
+            list.appendChild(row);
         });
     } catch (e) {
-        console.error(e);
-        userList.innerHTML = "<tr><td colspan='5'>Fehler: " + e.message + "</td></tr>";
+        console.error("Listen-Fehler:", e);
+        list.innerHTML = "<tr><td colspan='3'>Fehler beim Laden.</td></tr>";
     }
 }
 
