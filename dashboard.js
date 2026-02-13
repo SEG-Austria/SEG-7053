@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
@@ -16,23 +16,37 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // 🔐 Prüfen ob angemeldet
-// ... (nach dem erfolgreichen Laden der Mitgliederliste in dashboard.js) ...
-
 onAuthStateChanged(auth, async (user) => {
+    const msgEl = document.getElementById("welcomeMsg");
+    
     if (!user) {
+        console.log("Kein User eingeloggt, leite weiter...");
         window.location.href = "index.html";
-    } else {
+        return;
+    }
+
+    try {
+        console.log("User eingeloggt:", user.uid);
         const snap = await getDoc(doc(db, "users", user.uid));
-        const userData = snap.data();
         
-        document.getElementById("welcomeMsg").innerText = `Willkommen, ${userData.username}`;
-        
-        // Zeige Admin-Link nur wenn Rolle Admin ist
-        if (userData.role === "Admin") {
-            document.getElementById("adminLink").style.display = "block";
+        if (snap.exists()) {
+            const userData = snap.data();
+            msgEl.innerText = `Willkommen, ${userData.username || "Mitglied"}`;
+            
+            // Admin-Link anzeigen falls berechtigt
+            const adminBtn = document.getElementById("adminLink");
+            if (adminBtn && userData.role === "Admin") {
+                adminBtn.style.display = "block";
+            }
+            
+            loadMembers();
+        } else {
+            msgEl.innerText = "Fehler: User-Profil nicht in Datenbank gefunden.";
+            console.error("Kein Firestore-Dokument für UID:", user.uid);
         }
-        
-        loadMembers();
+    } catch (error) {
+        msgEl.innerText = "Fehler beim Laden des Profils.";
+        console.error("Dashboard Error:", error);
     }
 });
 
@@ -45,22 +59,31 @@ async function loadMembers() {
         
         snap.forEach(d => {
             const u = d.data();
-            if (u.banned) return; // Gesperrte User nicht anzeigen
+            if (u.banned) return; 
+
+            // CSS Klasse "säubern" (für Rollen mit Leerzeichen)
+            const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
 
             const row = `
                 <tr>
-                    <td>${u.username}</td>
-                    <td><span class="role-badge ${u.role}">${u.role}</span></td>
+                    <td>${u.username || "Unbekannt"}</td>
+                    <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
                 </tr>
             `;
             list.innerHTML += row;
         });
     } catch (e) {
-        list.innerHTML = "Fehler beim Laden.";
+        console.error("Fehler beim Laden der Mitglieder:", e);
+        list.innerHTML = "<tr><td colspan='2'>Fehler beim Laden der Liste.</td></tr>";
     }
 }
 
 // 🚪 Logout
-window.logout = () => {
-    signOut(auth).then(() => window.location.href = "index.html");
+window.logout = async () => {
+    try {
+        await signOut(auth);
+        window.location.href = "index.html";
+    } catch (e) {
+        console.error("Logout Fehler", e);
+    }
 };
