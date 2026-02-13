@@ -63,21 +63,22 @@ async function loadMembers() {
             const safeClass = u.role ? u.role.split(' ')[0] : "Rekrut";
 
             // 2. Status-Farbe bestimmen
-            let statusHTML = "";
-            if (u.status === "Abwesend (Entschuldigt)") {
-                statusHTML = `<span style="color: #ffbb33;">● Entschuldigt</span>`;
-            } else if (u.status === "Abwesend (Unentschuldigt)") {
-                statusHTML = `<span style="color: #ff4444;">● Unentschuldigt</span>`;
-            } else {
-                statusHTML = `<span style="color: #99cc00;">● Anwesend</span>`;
-            }
+            // 2. Status-Farbe bestimmen und Text aus der Datenbank übernehmen
+let statusText = u.status || "Anwesend"; // Fallback, falls das Feld leer ist
+let statusColor = "#99cc00"; // Standard: Grün
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${u.username || "Unbekannt"}</td>
-                <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
-                <td>${statusHTML}</td>
-            `;
+if (statusText.includes("Entschuldigt")) {
+    statusColor = "#ffbb33"; // Gelb
+} else if (statusText.includes("Unentschuldigt")) {
+    statusColor = "#ff4444"; // Rot
+}
+
+const row = document.createElement("tr");
+row.innerHTML = `
+    <td>${u.username || "Unbekannt"}</td>
+    <td><span class="role-badge ${safeClass}">${u.role || "Rekrut"}</span></td>
+    <td><span style="color: ${statusColor};">● ${statusText}</span></td>
+`;
             list.appendChild(row);
         });
     } catch (e) {
