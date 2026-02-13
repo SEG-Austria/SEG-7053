@@ -1,46 +1,54 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>SEG Admin Panel</title>
+    <meta charset="UTF-8">
+    <title>SEG - Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .container { max-width: 800px; } /* Admin Panel breiter */
+    </style>
 </head>
 <body>
+    <div class="header">
+        <img src="https://lh3.googleusercontent.com/d/1_T07pXUoKx_Kk6X-Lq9R0_fV_S_H9_zS" class="logo" style="max-width: 80px;">
+        <h1>🛡️ SEG Admin Panel</h1>
+    </div>
 
-<h1>🛡️ SEG Admin Panel</h1>
-<p id="status"></p>
-<h2>➕ Neuen User erstellen</h2>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Neuen User anlegen</h3>
+            <button onclick="window.logout()" style="width: auto; background: #444; color: white;">Abmelden</button>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <input id="newUsername" placeholder="Username">
+            <input id="newPassword" type="password" placeholder="Passwort">
+            <select id="newRole">
+                <option>Rekrut</option>
+                <option>Gräber</option>
+                <option>Elite</option>
+                <option>Admin</option>
+            </select>
+        </div>
+        <button onclick="window.createUser()">+ User erstellen</button>
 
-<input id="newUsername" placeholder="Username">
-<input id="newPassword" type="password" placeholder="Passwort">
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #555;">
 
-<select id="newRole">
-  <option>Rekrut</option>
-  <option>Gräber</option>
-  <option>Elite</option>
-  <option>Admin</option>
-</select>
-<button onclick="window.logout()" style="background-color: #555; color: white; padding: 10px; border: none; cursor: pointer;">
-  🚪 Abmelden
-</button>
-<button onclick="window.createUser()">User erstellen</button>
+        <h3>Mitglieder verwalten</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Rolle</th>
+                    <th>Status</th>
+                    <th>Aktion</th>
+                </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+        <p id="status" class="status"></p>
+    </div>
 
-<hr>
-
-<table border="1">
-  <thead>
-    <tr>
-      <th>Username</th>
-      <th>Rolle</th>
-      <th>Gesperrt</th>
-      <th>Aktionen</th>
-    </tr>
-  </thead>
-  <tbody id="userList"></tbody>
-</table>
-<div style="background: #222; padding: 10px; margin-bottom: 20px;">
-    <a href="dashboard.html" style="color: #00d4ff; text-decoration: none; margin-right: 20px;">📋 Zur Mitgliederliste</a>
-    <span style="color: #aaa;">| Angemeldet als Admin</span>
-</div>
-<script type="module" src="admin.js"></script>
+    <script type="module" src="admin.js"></script>
 </body>
 </html>
