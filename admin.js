@@ -2,6 +2,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, onAuthStateChanged } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
+  getAuth,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryAuth = getAuth(secondaryApp);
+
+import {
   getFirestore,
   collection,
   getDocs,
@@ -21,6 +31,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
+function fakeEmail(username) {
+  return username + "@seg.local";
+}
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+window.createUser = async () => {
+  const u = newUsername.value;
+  const p = newPassword.value;
+  const r = newRole.value;
+
+  if (!u || !p) {
+    alert("Username & Passwort fehlen");
+    return;
+  }
+
+  try {
+    const cred = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      fakeEmail(u),
+      p
+    );
+
+    await setDoc(doc(db, "users", cred.user.uid), {
+      username: u,
+      role: r,
+      banned: false
+    });
+
+    alert("User erstellt ✔");
+    loadUsers();
+
+  } catch (e) {
+    alert(e.message);
+  }
+};
 
 // 🔐 Prüfen ob Admin
 onAuthStateChanged(auth, async user => {
