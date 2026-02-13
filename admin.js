@@ -13,7 +13,7 @@ import {
     getDoc, 
     setDoc, 
     updateDoc, 
-    deleteDoc 
+    deleteDoc, addDoc, serverTimestamp  
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -114,8 +114,25 @@ window.setRole = async (uid, newRole) => {
 
 window.setStatus = async (uid, newStatus) => {
     try {
+        // 1. Status beim User aktualisieren
         await updateDoc(doc(db, "users", uid), { status: newStatus });
-    } catch (e) { console.error(e); }
+
+        // 2. Den Usernamen für das Log abrufen
+        const userSnap = await getDoc(doc(db, "users", uid));
+        const username = userSnap.exists() ? userSnap.data().username : "Unbekannt";
+
+        // 3. Log-Eintrag erstellen
+        await addDoc(collection(db, "logs"), {
+            targetUser: username,
+            newStatus: newStatus,
+            changedAt: serverTimestamp(),
+            changedBy: auth.currentUser.email // Wer hat es geändert?
+        });
+
+        console.log(`Log erstellt: ${username} -> ${newStatus}`);
+    } catch (e) {
+        console.error("Log-Fehler:", e);
+    }
 };
 
 window.toggleBan = async (uid, isBanned) => {
