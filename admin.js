@@ -24,7 +24,19 @@ const firebaseConfig = {
     appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e",
     measurementId: "G-C0QLYYD6Q5"
 };
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// ... (ganz unten in der Datei)
+
+window.logout = async () => {
+    try {
+        await signOut(auth); // auth ist bereits oben in deiner admin.js definiert
+        window.location.href = "index.html";
+    } catch (e) {
+        console.error("Logout Fehler:", e);
+        alert("Abmelden fehlgeschlagen!");
+    }
+};
 // --- INITIALISIERUNG ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
