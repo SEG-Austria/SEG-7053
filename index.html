@@ -2,19 +2,20 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>SEG – Super Elite Gräber</title>
+  <title>SEG Login</title>
 </head>
 <body>
-  <h1>SEG – Super Elite Gräber</h1>
 
-  <div id="login">
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Passwort">
-    <button onclick="login()">Login</button>
-  </div>
+<h1>SEG – Super Elite Gräber</h1>
 
-  <p id="role"></p>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Passwort">
 
-  <script src="app.js"></script>
+<button onclick="register()">Registrieren</button>
+<button onclick="login()">Login</button>
+
+<p id="status"></p>
+
+<script type="module" src="app.js"></script>
 </body>
 </html>
