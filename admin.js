@@ -9,3 +9,87 @@ import {
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
+  authDomain: "seg-austria.firebaseapp.com",
+  projectId: "seg-austria",
+  storageBucket: "seg-austria.firebasestorage.app",
+  messagingSenderId: "101261189931",
+  appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e",
+  measurementId: "G-C0QLYYD6Q5"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
+// 🔐 Prüfen ob Admin
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    document.body.innerHTML = "Nicht eingeloggt ❌";
+    return;
+  }
+
+  const snap = await getDocs(collection(db, "users"));
+  let me;
+
+  snap.forEach(d => {
+    if (d.id === user.uid) me = d.data();
+  });
+
+  if (!me || me.role !== "Admin") {
+    document.body.innerHTML = "Kein Zugriff ❌";
+    return;
+  }
+
+  loadUsers();
+});
+
+// 📋 User laden
+async function loadUsers() {
+  userList.innerHTML = "";
+  const snap = await getDocs(collection(db, "users"));
+
+  snap.forEach(d => {
+    const u = d.data();
+
+    userList.innerHTML += `
+      <tr>
+        <td>${u.username}</td>
+        <td>
+          <select onchange="setRole('${d.id}', this.value)">
+            ${["Rekrut","Gräber","Elite","Admin"].map(r =>
+              `<option ${u.role===r?"selected":""}>${r}</option>`
+            ).join("")}
+          </select>
+        </td>
+        <td>${u.banned ? "🚫" : "✅"}</td>
+        <td>
+          <button onclick="toggleBan('${d.id}', ${u.banned})">
+            ${u.banned ? "Entsperren" : "Sperren"}
+          </button>
+          <button onclick="removeUser('${d.id}')">Löschen</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// 🧑‍🚀 Rolle ändern
+window.setRole = async (uid, role) => {
+  await updateDoc(doc(db, "users", uid), { role });
+  loadUsers();
+};
+
+// 🚫 Sperren / Entsperren
+window.toggleBan = async (uid, banned) => {
+  await updateDoc(doc(db, "users", uid), { banned: !banned });
+  loadUsers();
+};
+
+// 🗑️ Löschen (nur Daten, Auth bleibt)
+window.removeUser = async uid => {
+  if (confirm("User wirklich löschen?")) {
+    await deleteDoc(doc(db, "users", uid));
+    loadUsers();
+  }
+};
