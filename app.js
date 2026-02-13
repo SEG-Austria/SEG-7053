@@ -33,41 +33,70 @@ function fakeEmail(username) {
 //  alert("Registration nur beim Besitzer und Web Administrator möglich.");
 //};
 window.register = async () => {
-  const u = username.value;
-  const p = password.value;
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+
+  const statusEl = document.getElementById("status");
+
+  if (!u || !p) {
+    statusEl.innerText = "Username oder Passwort fehlt ❌";
+    return;
+  }
+
+  if (p.length < 6) {
+    statusEl.innerText = "Passwort muss mind. 6 Zeichen haben ❌";
+    return;
+  }
+
+  const email = u.toLowerCase() + "@seg.local";
 
   try {
-    const cred = await createUserWithEmailAndPassword(
-      auth,
-      fakeEmail(u),
-      p
-    );
+    const cred = await createUserWithEmailAndPassword(auth, email, p);
 
     await setDoc(doc(db, "users", cred.user.uid), {
       username: u,
-      role: "Rekrut"
+      role: "Rekrut",
+      banned: false
     });
 
-    status.innerText = "Registriert ✔ Rolle: Rekrut";
+    statusEl.innerText = "Registriert ✔";
   } catch (e) {
-    status.innerText = e.message;
+    statusEl.innerText = e.code;
+    console.error(e);
   }
 };
+
 // 🔵 LOGIN
 window.login = async () => {
-  const u = username.value;
-  const p = password.value;
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+  const statusEl = document.getElementById("status");
+
+  const email = u.toLowerCase() + "@seg.local";
 
   try {
-    const cred = await signInWithEmailAndPassword(
-      auth,
-      fakeEmail(u),
-      p
-    );
-  if (snap.data().banned) {
-  status.innerText = "Du bist gesperrt 🚫";
-  return;
-}
+    const cred = await signInWithEmailAndPassword(auth, email, p);
+
+    const snap = await getDoc(doc(db, "users", cred.user.uid));
+
+    if (!snap.exists()) {
+      statusEl.innerText = "Kein User-Datensatz ❌";
+      return;
+    }
+
+    if (snap.data().banned) {
+      statusEl.innerText = "Du bist gesperrt 🚫";
+      return;
+    }
+
+    statusEl.innerText = "Login ✔ Rolle: " + snap.data().role;
+
+  } catch (e) {
+    statusEl.innerText = "Login fehlgeschlagen ❌";
+    console.error(e.code);
+  }
+};
+
 
     const snap = await getDoc(doc(db, "users", cred.user.uid));
     status.innerText =
