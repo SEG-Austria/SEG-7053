@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SEG - Mitgliederbereich</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #444; text-align: left; }
+        th { background: #333; }
+        .role-badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .Admin { background: #ff4444; }
+        .Elite { background: #aa66cc; }
+        .Gräber { background: #33b5e5; }
+        .Rekrut { background: #99cc00; }
+    </style>
+</head>
+<body>
+    <h1>📋 SEG Mitgliederliste</h1>
+    <p id="welcomeMsg">Lade Profil...</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Rang</th>
+            </tr>
+        </thead>
+        <tbody id="memberList"></tbody>
+    </table>
+
+    <button onclick="logout()" style="margin-top:20px;">Abmelden</button>
+
+    <script type="module" src="dashboard.js"></script>
+</body>
+</html>
