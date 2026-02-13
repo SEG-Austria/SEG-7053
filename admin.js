@@ -13,7 +13,9 @@ import {
     getDoc, 
     setDoc, 
     updateDoc, 
-    deleteDoc, addDoc, serverTimestamp  
+    deleteDoc,
+    addDoc,
+    serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -25,17 +27,20 @@ const firebaseConfig = {
     appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e"
 };
 
+// Initialisierung
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Zweit-App für User-Erstellung (verhindert Logout des Admins)
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
+// Konfigurationen
 const roles = [
     "Anfänger", "Schlechter Arbeiter", "Mittelmäßiger Arbeiter", 
     "Guter Arbeiter", "Bester Arbeiter", "General", 
-    "Co-Anführer", "Anführer", "Admin"
+    "Co-Anführer", "Anführer", "Krank / Vorübergehend nicht verfügbar", "Admin"
 ];
 
 const statusOptions = [
@@ -45,7 +50,7 @@ const statusOptions = [
     "Keine Schicht"
 ];
 
-// --- FUNKTIONEN ZUERST DEFINIEREN ---
+// --- KERNFUNKTIONEN ---
 
 async function loadUsers() {
     const userList = document.getElementById("userList");
@@ -74,65 +79,75 @@ async function loadUsers() {
                 <td>${u.banned ? "🚫 Gesperrt" : "✅ Aktiv"}</td>
                 <td>
                     <button onclick="window.toggleBan('${d.id}', ${u.banned})">${u.banned ? "Entsperren" : "Sperren"}</button>
-                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:5px; background:none; border:1px solid red; cursor:pointer;">X</button>
+                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px; background:none; border:1px solid red; cursor:pointer;">X</button>
                 </td>
             `;
             userList.appendChild(row);
         });
     } catch (e) {
-        console.error("Fehler beim Laden:", e);
+        console.error("Fehler beim Laden der User:", e);
     }
 }
 
-// --- GLOBALE WINDOW-ZOWEISUNGEN ---
+// --- WINDOW FUNKTIONEN (GLOBALE EVENTS) ---
 
 window.createUser = async () => {
     const uEl = document.getElementById("newUsername");
     const pEl = document.getElementById("newPassword");
     const rEl = document.getElementById("newRole");
-    if (!uEl.value || !pEl.value) return alert("Daten fehlen!");
+    if (!uEl.value || !pEl.value) return alert("Username oder Passwort fehlt!");
 
     try {
         const email = uEl.value.toLowerCase().trim() + "@seg.local";
         const cred = await createUserWithEmailAndPassword(secondaryAuth, email, pEl.value);
+        
         await setDoc(doc(db, "users", cred.user.uid), {
             username: uEl.value,
             role: rEl.value,
             status: "Anwesend",
             banned: false
         });
+
+        alert(`User ${uEl.value} wurde erstellt!`);
         uEl.value = ""; pEl.value = "";
         loadUsers();
-    } catch (e) { alert(e.message); }
+    } catch (e) { alert("Fehler: " + e.message); }
 };
 
 window.setRole = async (uid, newRole) => {
     try {
+        const userSnap = await getDoc(doc(db, "users", uid));
+        const username = userSnap.exists() ? userSnap.data().username : "Unbekannt";
+
         await updateDoc(doc(db, "users", uid), { role: newRole });
+
+        // LOGGING
+        await addDoc(collection(db, "logs"), {
+            targetUser: username,
+            newStatus: `Beförderung/Rang: ${newRole}`,
+            changedAt: serverTimestamp(),
+            changedBy: auth.currentUser.email
+        });
+        console.log("Rolle geändert & Log erstellt.");
     } catch (e) { console.error(e); }
 };
 
 window.setStatus = async (uid, newStatus) => {
     try {
-        // 1. Status beim User aktualisieren
-        await updateDoc(doc(db, "users", uid), { status: newStatus });
-
-        // 2. Den Usernamen für das Log abrufen
         const userSnap = await getDoc(doc(db, "users", uid));
         const username = userSnap.exists() ? userSnap.data().username : "Unbekannt";
 
-        // 3. Log-Eintrag erstellen
+        await updateDoc(doc(db, "users", uid), { status: newStatus });
+
+        // LOGGING
         await addDoc(collection(db, "logs"), {
             targetUser: username,
             newStatus: newStatus,
             changedAt: serverTimestamp(),
-            changedBy: auth.currentUser.email // Wer hat es geändert?
+            changedBy: auth.currentUser.email
         });
-
-        console.log(`Log erstellt: ${username} -> ${newStatus}`);
-    } catch (e) {
-        console.error("Log-Fehler:", e);
-    }
+        console.log("Status geändert & Log erstellt.");
+    } catch (e) { console.error(e); }
 };
 
 window.toggleBan = async (uid, isBanned) => {
@@ -143,7 +158,7 @@ window.toggleBan = async (uid, isBanned) => {
 };
 
 window.removeUser = async (uid) => {
-    if (confirm("Löschen?")) {
+    if (confirm("Möchtest du diesen Account wirklich löschen?")) {
         try {
             await deleteDoc(doc(db, "users", uid));
             loadUsers();
@@ -156,22 +171,22 @@ window.logout = async () => {
     window.location.href = "index.html";
 };
 
-// --- AUTH CHECK ALS LETZTES ---
+// --- AUTH CHECK & START ---
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { 
-        window.location.href = "index.html"; 
-        return; 
+    if (!user) {
+        window.location.href = "index.html";
+        return;
     }
+    
     try {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (!snap.exists() || snap.data().role !== "Admin") {
             window.location.href = "dashboard.html";
         } else {
-            // Jetzt ist loadUsers garantiert definiert
             loadUsers();
         }
     } catch (e) {
-        console.error("Auth Check Fehler:", e);
+        console.error("Auth-Error:", e);
     }
 });
