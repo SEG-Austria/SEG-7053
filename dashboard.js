@@ -78,6 +78,87 @@ async function loadMembers() {
         });
     } catch (e) { console.error(e); }
 }
+let labeledDescriptor = null;
+
+// 1. KI Modelle laden
+async function initFaceAI() {
+    const MODEL_URL = '/models'; // Pfad zu deinen Model-Dateien
+    await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+    startVideo();
+}
+
+function startVideo() {
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: {} })
+        .then(stream => {
+            video.srcObject = stream;
+            recognizeFace();
+        });
+}
+
+// 2. Gesicht registrieren (Einmalig als Admin oder User)
+window.registerFace = async () => {
+    const video = document.getElementById('video');
+    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+    if (detections) {
+        const user = auth.currentUser;
+        // Speichere das Gesicht als normales Array in Firestore
+        const faceArray = Array.from(detections.descriptor);
+        await updateDoc(doc(db, "users", user.uid), { faceDescriptor: faceArray });
+        alert("Gesicht biometrisch gespeichert!");
+    } else {
+        alert("Kein Gesicht erkannt. Bitte besser ins Licht rücken.");
+    }
+};
+
+// 3. Gesicht abgleichen (Der Live-Check)
+async function recognizeFace() {
+    const video = document.getElementById('video');
+    const status = document.getElementById('faceStatus');
+    
+    // Lade gespeicherten Descriptor vom User aus Firestore
+    const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    const savedDescriptor = userSnap.data().faceDescriptor;
+
+    if (!savedDescriptor) {
+        status.innerText = "Kein Gesicht hinterlegt. Bitte registrieren.";
+        document.getElementById('regBtn').style.display = "block";
+        return;
+    }
+
+    const faceMatcher = new faceapi.FaceMatcher(new faceapi.LabeledFaceDescriptors(
+        auth.currentUser.uid, [new Float32Array(savedDescriptor)]
+    ), 0.6); // 0.6 ist der Schwellenwert (kleiner = strenger)
+
+    setInterval(async () => {
+        const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+        if (detections) {
+            const match = faceMatcher.findBestMatch(detections.descriptor);
+            if (match.label !== 'unknown') {
+                status.innerHTML = "<span style='color: #99cc00;'>✅ Identität bestätigt!</span>";
+                // Automatisch auf anwesend setzen
+                updateDoc(doc(db, "users", auth.currentUser.uid), { status: "Anwesend" });
+            } else {
+                status.innerHTML = "<span style='color: #ff4444;'>❌ Unbekanntes Gesicht</span>";
+            }
+        }
+    }, 2000); // Checkt alle 2 Sekunden
+}
+
+// Starten, wenn Auth bereit ist
+onAuthStateChanged(auth, (user) => {
+    if (user) initFaceAI();
+});
 async function startFaceRecognition() {
     // 1. KI-Modelle laden (müssen im Ordner /models liegen)
     await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
