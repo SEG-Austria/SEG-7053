@@ -24,31 +24,7 @@ function updateStatus(text) {
 
 // 🟢 REGISTRIEREN
 window.register = async () => {
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value;
-
-  if (!u || !p) {
-    updateStatus("Username oder Passwort fehlt ❌");
-    return;
-  }
-
-  const email = u.toLowerCase() + "@seg.local";
-
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, p);
-    await setDoc(doc(db, "users", cred.user.uid), {
-      username: u,
-      role: "Rekrut",
-      banned: false
-    });
-    updateStatus("Registriert ✔ Logge dich jetzt ein.");
-  } catch (e) {
-    if (e.code === "auth/email-already-in-use") {
-      updateStatus("Name bereits vergeben ❌");
-    } else {
-      updateStatus("Fehler: " + e.code);
-    }
-  }
+  alert("Die Registrierung ist beim Anführer und bei der WebAdministration möglich.");
 };
 
 // 🔵 LOGIN mit Weiterleitung
