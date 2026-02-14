@@ -1,84 +1,77 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
-  authDomain: "seg-austria.firebaseapp.com",
-  projectId: "seg-austria",
-  storageBucket: "seg-austria.firebasestorage.app",
-  messagingSenderId: "101261189931",
-  appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e",
-  measurementId: "G-C0QLYYD6Q5"
+    apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
+    authDomain: "seg-austria.firebaseapp.com",
+    projectId: "seg-austria",
+    storageBucket: "seg-austria.firebasestorage.app",
+    messagingSenderId: "101261189931",
+    appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
-// Hilfsfunktion für Status-Anzeigen
-function updateStatus(text) {
-  const statusEl = document.getElementById("status");
-  if (statusEl) statusEl.innerText = text;
-}
-
-// 🟢 REGISTRIEREN
-window.register = async () => {
-  alert("Die Registrierung ist beim Anführer und bei der WebAdministration möglich.");
-};
-
-// 🔵 LOGIN mit Weiterleitung
-window.login = async () => {
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value;
-
-  if (!u || !p) {
-    updateStatus("Bitte Daten eingeben ❌");
-    return;
-  }
-
-  const email = u.toLowerCase() + "@seg.local";
-
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, p);
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-
-    if (!snap.exists()) {
-      updateStatus("Kein User-Datensatz ❌");
-      return;
-    }
-
-    const userData = snap.data();
-
-    if (userData.banned) {
-      updateStatus("Du bist gesperrt 🚫");
-      await signOut(auth);
-      return;
-    }
-
-    updateStatus("Login erfolgreich! Leite weiter...");
-
-    // Weiterleitungs-Logik nach Rolle
-    setTimeout(() => {
-      if (userData.role === "Admin") {
-        window.location.href = "admin.html";
-      } else {
+// --- AUTOMATISCHE WEITERLEITUNG ---
+// Wenn der User schon eingeloggt ist, schick ihn direkt zum Dashboard
+onAuthStateChanged(auth, (user) => {
+    if (user && window.location.pathname.includes("index.html")) {
         window.location.href = "dashboard.html";
-      }
-    }, 800);
+    }
+});
 
-  } catch (e) {
-    updateStatus("Login fehlgeschlagen ❌");
-    console.error(e.code);
-  }
+// --- LOGIN FUNKTION ---
+window.login = async () => {
+    const userField = document.getElementById("loginEmail");
+    const passField = document.getElementById("loginPassword");
+    const errorMsg = document.getElementById("errorMsg");
+
+    if (!userField || !passField) return;
+
+    const username = userField.value.trim();
+    const password = passField.value;
+
+    if (!username || !password) {
+        errorMsg.innerText = "Bitte Name und Passwort eingeben!";
+        return;
+    }
+
+    // Erstellt die interne E-Mail (z.B. max@seg.local)
+    const email = username.includes("@") ? username : username.toLowerCase() + "@seg.local";
+
+    try {
+        errorMsg.style.color = "var(--primary-gold)";
+        errorMsg.innerText = "Verifiziere Identität...";
+        
+        await signInWithEmailAndPassword(auth, email, password);
+        
+        // Erfolg! Weiterleitung zum Dashboard
+        window.location.href = "dashboard.html";
+    } catch (error) {
+        console.error("Login Fehler:", error.code);
+        errorMsg.style.color = "var(--danger)";
+        
+        // Nutzerfreundliche Fehlermeldungen
+        switch (error.code) {
+            case "auth/invalid-credential":
+                errorMsg.innerText = "Name oder Passwort falsch!";
+                break;
+            case "auth/user-not-found":
+                errorMsg.innerText = "Benutzer nicht gefunden!";
+                break;
+            case "auth/wrong-password":
+                errorMsg.innerText = "Passwort ist nicht korrekt!";
+                break;
+            default:
+                errorMsg.innerText = "Login fehlgeschlagen. Versuche es erneut.";
+        }
+    }
 };
 
-// 🔴 LOGOUT Funktion (global nutzbar)
-window.logout = async () => {
-  try {
-    await signOut(auth);
-    window.location.href = "index.html";
-  } catch (e) {
-    console.error("Logout Fehler", e);
-  }
-};
+// Enter-Taste zum Einloggen ermöglichen
+document.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        window.login();
+    }
+});
