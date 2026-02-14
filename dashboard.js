@@ -10,7 +10,9 @@ import {
     query, 
     orderBy, 
     limit, 
-    onSnapshot 
+    onSnapshot,
+    addDoc,
+    serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -27,42 +29,43 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- 1. MITGLIEDERLISTE LADEN ---
-async function loadMembers() {
+// --- 1. MITGLIEDERLISTE (ECHTZEIT) ---
+function loadMembers() {
     const tableBody = document.getElementById("memberList");
     if (!tableBody) return;
 
-    const querySnapshot = await getDocs(collection(db, "users"));
-    tableBody.innerHTML = "";
-
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const row = `
-            <tr>
-                <td>${data.username}</td>
-                <td><span class="role-badge ${data.role ? data.role.split(' ')[0] : ''}">${data.role || "Arbeiter"}</span></td>
-                <td style="color: ${data.status === 'Anwesend' ? '#99cc00' : '#ff4444'}">${data.status || "Unbekannt"}</td>
-            </tr>
-        `;
-        tableBody.innerHTML += row;
+    onSnapshot(collection(db, "users"), (snapshot) => {
+        tableBody.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const row = `
+                <tr>
+                    <td>${data.username || "Unbekannt"}</td>
+                    <td><span class="role-badge ${data.role ? data.role.split(' ')[0] : ''}">${data.role || "Arbeiter"}</span></td>
+                    <td style="color: ${data.status === 'Anwesend' ? '#99cc00' : '#ff4444'}; font-weight: bold;">
+                        ${data.status || "Keine Schicht"}
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
     });
 }
 
-// --- 2. LOGS LADEN (ECHTZEIT) ---
+// --- 2. LOGS LADEN (LETZTE 10) ---
 function loadLogs() {
     const logBox = document.getElementById("logList");
     if (!logBox) return;
 
     const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-    
     onSnapshot(q, (snapshot) => {
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
             const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
             logBox.innerHTML += `
-                <div class="log-item">
-                    <span style="color: #888; font-size: 0.8em;">[${zeit}]</span><br>
+                <div class="log-item" style="border-bottom: 1px solid #333; padding: 5px 0;">
+                    <span style="color: #888; font-size: 0.75em;">[${zeit}]</span><br>
                     <strong style="color: var(--primary-gold);">${l.targetUser}</strong> 
                     <span style="color: #eee;">→ ${l.newStatus}</span>
                 </div>
@@ -71,36 +74,45 @@ function loadLogs() {
     });
 }
 
-// --- 3. GESICHTSERKENNUNG (WEG 1) ---
+// --- 3. GESICHTSERKENNUNG ---
 async function initFaceAI() {
-    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models'; 
     const status = document.getElementById('faceStatus');
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models'; 
 
     try {
-        if(status) status.innerText = "Lade KI-Hirn...";
+        if(status) status.innerText = "Lade Biometrie-Module...";
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        if(status) status.innerText = "KI bereit. Starte Kamera...";
+        
+        if(status) status.innerText = "KI bereit. Kamera startet...";
         startVideo();
     } catch (e) {
-        console.error("KI-Fehler:", e);
-        if(status) status.innerText = "KI konnte nicht geladen werden.";
+        console.error("Face-API Fehler:", e);
+        if(status) status.innerText = "Gesichtsscan-Modul konnte nicht geladen werden.";
     }
 }
 
 function startVideo() {
     const video = document.getElementById('video');
+    if (!video) return;
+
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
         .then(stream => {
             video.srcObject = stream;
             recognizeFace();
         })
-        .catch(err => console.error("Kamera-Fehler:", err));
+        .catch(err => {
+            console.error("Kamera-Zugriff verweigert:", err);
+            const status = document.getElementById('faceStatus');
+            if(status) status.innerText = "Kamera-Zugriff blockiert (Safari-Einstellungen prüfen).";
+        });
 }
 
 window.registerFace = async () => {
     const video = document.getElementById('video');
+    const status = document.getElementById('faceStatus');
+    
     const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
@@ -109,28 +121,29 @@ window.registerFace = async () => {
         const user = auth.currentUser;
         const faceArray = Array.from(detections.descriptor);
         await updateDoc(doc(db, "users", user.uid), { faceDescriptor: faceArray });
-        alert("Gesicht biometrisch gespeichert!");
-        location.reload(); // Seite neu laden um Abgleich zu starten
+        alert("Gesichtsprofil erfolgreich gespeichert!");
+        location.reload(); 
     } else {
-        alert("Kein Gesicht erkannt. Bitte ins Licht rücken.");
+        alert("Kein Gesicht erkannt. Bitte direkt in die Kamera schauen.");
     }
 };
 
 async function recognizeFace() {
     const video = document.getElementById('video');
     const status = document.getElementById('faceStatus');
-    
-    const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    const user = auth.currentUser;
+
+    const userSnap = await getDoc(doc(db, "users", user.uid));
     const savedDescriptor = userSnap.data().faceDescriptor;
 
     if (!savedDescriptor) {
-        status.innerText = "Kein Gesicht hinterlegt. Bitte registrieren.";
+        if(status) status.innerText = "Kein Profil gefunden. Bitte Scannen.";
         document.getElementById('regBtn').style.display = "block";
         return;
     }
 
     const faceMatcher = new faceapi.FaceMatcher(new faceapi.LabeledFaceDescriptors(
-        auth.currentUser.uid, [new Float32Array(savedDescriptor)]
+        user.uid, [new Float32Array(savedDescriptor)]
     ), 0.6);
 
     setInterval(async () => {
@@ -141,40 +154,41 @@ async function recognizeFace() {
         if (detections) {
             const match = faceMatcher.findBestMatch(detections.descriptor);
             if (match.label !== 'unknown') {
-                status.innerHTML = "<span style='color: #99cc00;'>✅ Identität bestätigt!</span>";
-                await updateDoc(doc(db, "users", auth.currentUser.uid), { status: "Anwesend" });
+                if(status) status.innerHTML = "<span style='color: #99cc00;'>✅ Identität bestätigt!</span>";
+                
+                // Status auf Anwesend setzen, falls nicht schon geschehen
+                if (userSnap.data().status !== "Anwesend") {
+                    await updateDoc(doc(db, "users", user.uid), { status: "Anwesend" });
+                    await addDoc(collection(db, "logs"), {
+                        targetUser: userSnap.data().username,
+                        newStatus: "Anwesend (Face-ID)",
+                        changedAt: serverTimestamp(),
+                        changedBy: "System (Biometrie)"
+                    });
+                }
             } else {
-                status.innerHTML = "<span style='color: #ff4444;'>❌ Unbekannt (Scan läuft...)</span>";
+                if(status) status.innerHTML = "<span style='color: #ff4444;'>❌ Unbekannt...</span>";
             }
         }
     }, 3000);
 }
 
-// --- 4. AUTH-CHECK & INITIALISIERUNG ---
+// --- 4. AUTH-CHECK & ADMIN-BUTTON ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // 1. Daten laden
         loadMembers();
         loadLogs();
         initFaceAI();
 
-        // 2. Admin-Check für den Button
-        try {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists() && userDoc.data().role === "Admin") {
-                const adminBtn = document.getElementById("adminPanelBtn");
-                if (adminBtn) {
-                    adminBtn.style.display = "block"; // Knopf anzeigen
-                    console.log("Admin erkannt: Knopf wird angezeigt.");
-                }
-            }
-        } catch (error) {
-            console.error("Fehler beim Admin-Check:", error);
+        // Admin-Check für Button-Sichtbarkeit
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().role === "Admin") {
+            const adminBtn = document.getElementById("adminPanelBtn");
+            if (adminBtn) adminBtn.style.display = "block";
         }
-
     } else {
         window.location.href = "index.html";
     }
 });
 
-window.logout = () => signOut(auth);
+window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
