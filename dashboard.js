@@ -176,21 +176,27 @@ async function recognizeFace() {
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // 1. Hol die Daten des Nutzers aus Firestore
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        
-        if (!userDoc.exists()) {
-            console.error("Nutzerdaten nicht gefunden!");
-            return;
-        }
-
         const userData = userDoc.data();
 
-        // 2. SOFORT-CHECK: Ist der Nutzer gesperrt?
-        if (userData.role === "Gesperrt" || userData.status === "Gesperrt") {
-            alert("Dein Account wurde gesperrt. Zugriff verweigert.");
-            await signOut(auth); // Meldet den Nutzer technisch ab
-            window.location.href = "index.html"; // Schickt ihn zum Login zurück
+        // Prüft, ob das Feld 'banned' auf true gesetzt ist
+        if (userData && userData.banned === true) {
+            alert("❌ ZUGRIFF VERWEIGERT: Dein Account ist gesperrt.");
+            await signOut(auth);
+            window.location.href = "index.html";
+            return; 
+        }
+
+        // Falls nicht gesperrt -> Normaler Ladevorgang
+        loadMembers();
+        loadLogs();
+        initFaceAI();
+        
+        if (userData.role === "Admin") {
+            document.getElementById("adminPanelBtn").style.display = "block";
+        }
+    } else {
+        window.location.href = "index.html"; // Schickt ihn zum Login zurück
             return; // Stoppt die weitere Ausführung
         }
 
