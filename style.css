@@ -5,64 +5,32 @@
   --text-light: #e0e0e0;
   --danger: #ff4444;
 }
-/* In style.css hinzufügen */
-.status-indicator {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 5px;
-}
-/* Styling für die Log-Box */
-.log-container {
-    max-height: 250px; 
-    overflow-y: auto; 
-    background: #0a0a0a; 
-    padding: 15px; 
-    border-radius: 4px;
-    border-left: 3px solid var(--primary-gold);
-    font-family: 'Courier New', Courier, monospace; /* Terminal Look */
-}
 
-/* Schicker Scrollbar für Chrome/Safari */
-.log-container::-webkit-scrollbar {
-    width: 6px;
-}
-.log-container::-webkit-scrollbar-track {
-    background: #111;
-}
-.log-container::-webkit-scrollbar-thumb {
-    background: var(--primary-gold);
-    border-radius: 10px;
-}
-
-/* Einzelne Log-Einträge */
-.log-item {
-    border-bottom: 1px solid #222;
-    padding: 8px 0;
-    animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-body {
+/* --- BASIS STYLES --- */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   background-color: var(--dark-bg);
   color: var(--text-light);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
+}
+
+body {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+/* --- HEADER & LOGO --- */
 .header {
   width: 100%;
   background: linear-gradient(to bottom, #3d2b1f, #1a110a);
   padding: 20px;
   text-align: center;
   border-bottom: 3px solid var(--primary-gold);
+  box-sizing: border-box;
 }
 
 .logo {
@@ -71,17 +39,21 @@ body {
   filter: drop-shadow(0 0 10px rgba(197, 160, 89, 0.5));
 }
 
+/* --- CONTAINER --- */
 .container {
   background: var(--panel-bg);
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  margin-top: 40px;
+  margin-top: 20px;
+  margin-bottom: 20px;
   width: 90%;
-  max-width: 450px;
+  max-width: 600px; /* Erhöht für Tabellen-Ansicht */
   border: 1px solid #444;
+  box-sizing: border-box;
 }
 
+/* --- FORMULAR ELEMENTE --- */
 input, select {
   width: 100%;
   padding: 12px;
@@ -110,12 +82,7 @@ button:hover {
   transform: translateY(-2px);
 }
 
-.status {
-  text-align: center;
-  margin: 15px 0;
-  font-weight: bold;
-}
-
+/* --- TABELLEN --- */
 table {
   width: 100%;
   margin-top: 20px;
@@ -127,11 +94,106 @@ th, td {
   border-bottom: 1px solid #444;
   text-align: left;
 }
-/* Farben für die neuen Rollen im Dashboard */
-.Guter { background: #99cc00; color: black} /* Grün */
-.General { background: #ffbb33; color: black; } /* Orange */
-.Anführer { background: #ffd700; color: black;} /* Gold */
-.Krank { background: #888; } /* Grau für Abwesende */
-/* Tipp: Klassen mit Leerzeichen sind schwierig, 
-   man nutzt meistens nur das erste Wort im CSS */
+
 th { color: var(--primary-gold); }
+
+/* --- ROLLEN BADGES --- */
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.Anfänger { background: #99cc00; color: black; }
+.Guter { background: #4caf50; color: white; }
+.General { background: #ffbb33; color: black; } 
+.Anführer { background: #ffd700; color: black; }
+.Krank { background: #888; color: white; }
+.Admin { background: #ff4444; color: white; }
+
+/* --- LOG BOX --- */
+.log-container {
+  max-height: 250px; 
+  overflow-y: auto; 
+  background: #0a0a0a; 
+  padding: 15px; 
+  border-radius: 4px;
+  border-left: 3px solid var(--primary-gold);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.log-item {
+  border-bottom: 1px solid #222;
+  padding: 8px 0;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- MOBILE OPTIMIERUNG (HANDY) --- */
+@media screen and (max-width: 600px) {
+  .logo { max-width: 100px; }
+  
+  .container {
+    padding: 15px;
+    margin-top: 15px;
+  }
+
+  /* Tabelle in Karten umwandeln */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 15px;
+    border: 1px solid #444;
+    border-radius: 8px;
+  }
+
+  td {
+    border: none;
+    position: relative;
+    padding-left: 45% !important;
+    text-align: right;
+    border-bottom: 1px solid #333;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  td:last-child { border-bottom: 0; }
+
+  td:before {
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: bold;
+    color: var(--primary-gold);
+    font-size: 0.9em;
+  }
+
+  /* Spalten-Beschriftungen (Klassen müssen in HTML body sein) */
+  .dashboard-page td:nth-of-type(1):before { content: "Name"; }
+  .dashboard-page td:nth-of-type(2):before { content: "Rang"; }
+  .dashboard-page td:nth-of-type(3):before { content: "Status"; }
+
+  .admin-page td:nth-of-type(1):before { content: "User"; }
+  .admin-page td:nth-of-type(2):before { content: "Rolle"; }
+  .admin-page td:nth-of-type(3):before { content: "Schicht"; }
+  .admin-page td:nth-of-type(4):before { content: "Status"; }
+  .admin-page td:nth-of-type(5):before { content: "Aktion"; }
+}
