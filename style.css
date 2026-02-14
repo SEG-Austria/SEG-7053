@@ -107,7 +107,8 @@ th { color: var(--primary-gold); }
 }
 
 .Anfänger { background: #99cc00; color: black; }
-.Guter { background: #4caf50; color: white; }
+.Bester { background: #4caf50; color: white; }
+.Schlechter { background: brown; color: white; }
 .General { background: #ffbb33; color: black; } 
 .Anführer { background: #ffd700; color: black; }
 .Krank { background: #888; color: white; }
