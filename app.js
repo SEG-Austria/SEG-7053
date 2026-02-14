@@ -40,14 +40,26 @@ window.login = async () => {
     // Erstellt die interne E-Mail (z.B. max@seg.local)
     const email = username.includes("@") ? username : username.toLowerCase() + "@seg.local";
 
-    try {
-        errorMsg.style.color = "var(--primary-gold)";
-        errorMsg.innerText = "Verifiziere Identität...";
-        
-        await signInWithEmailAndPassword(auth, email, password);
-        
-        // Erfolg! Weiterleitung zum Dashboard
+   try {
+    errorMsg.style.color = "var(--primary-gold)";
+    errorMsg.innerText = "Verifiziere Identität...";
+    
+    // 1. Login durchführen
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 2. Rolle aus Firestore abrufen
+    const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    const db = getFirestore(app);
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+
+    if (userDoc.exists() && userDoc.data().role === "Admin") {
+        // Admin -> Admin-Panel
+        window.location.href = "admin.html";
+    } else {
+        // Normaler User -> Dashboard
         window.location.href = "dashboard.html";
+    }
     } catch (error) {
         console.error("Login Fehler:", error.code);
         errorMsg.style.color = "var(--danger)";
