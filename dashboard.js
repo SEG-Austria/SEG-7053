@@ -78,7 +78,31 @@ async function loadMembers() {
         });
     } catch (e) { console.error(e); }
 }
+async function startFaceRecognition() {
+    // 1. KI-Modelle laden (müssen im Ordner /models liegen)
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
 
+    // 2. Kamera starten
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: {} }, stream => video.srcObject = stream);
+
+    // 3. Gesicht erkennen
+    video.addEventListener('play', () => {
+        setInterval(async () => {
+            const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            if (detections) {
+                console.log("Gesicht erkannt!");
+                // Hier würde der Vergleich mit dem gespeicherten Descriptor stattfinden
+                verifyUser(detections.descriptor);
+            }
+        }, 1000);
+    });
+}
 // 📜 Log-System
 async function loadLogs() {
     const logBox = document.getElementById("logList");
