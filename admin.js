@@ -51,7 +51,43 @@ const statusOptions = [
 ];
 
 // --- KERNFUNKTIONEN ---
+async function checkDailyReset() {
+    const today = new Date().toLocaleDateString('de-DE');
+    const resetRef = doc(db, "system", "lastReset");
 
+    try {
+        const resetSnap = await getDoc(resetRef);
+        
+        // Wenn das Datum in der Datenbank nicht von heute ist -> RESET
+        if (!resetSnap.exists() || resetSnap.data().date !== today) {
+            console.log("Neuer Tag erkannt! Setze alle Status auf 'Keine Schicht'...");
+            
+            const usersSnap = await getDocs(collection(db, "users"));
+            
+            // Alle User durchgehen und Status ändern
+            const updatePromises = usersSnap.docs.map(uDoc => 
+                updateDoc(doc(db, "users", uDoc.id), { status: "Keine Schicht" })
+            );
+            
+            await Promise.all(updatePromises);
+
+            // Das Reset-Datum in der Datenbank aktualisieren
+            await setDoc(resetRef, { date: today });
+
+            // Optional: Einen Log-Eintrag erstellen
+            await addDoc(collection(db, "logs"), {
+                targetUser: "SYSTEM",
+                newStatus: "Täglicher Reset (Alle auf Keine Schicht)",
+                changedAt: serverTimestamp(),
+                changedBy: "Automatisches System"
+            });
+
+            console.log("Täglicher Reset abgeschlossen.");
+        }
+    } catch (e) {
+        console.error("Fehler beim Daily Reset:", e);
+    }
+}
 async function loadUsers() {
     const userList = document.getElementById("userList");
     if (!userList) return;
@@ -178,7 +214,11 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "index.html";
         return;
     }
-    
+    const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists() && snap.data().role === "Admin") {
+            await checkDailyReset(); // <--- Hier einfügen
+            loadUsers();
+        }
     try {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (!snap.exists() || snap.data().role !== "Admin") {
