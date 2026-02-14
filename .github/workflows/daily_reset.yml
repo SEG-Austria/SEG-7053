@@ -1,22 +1,23 @@
 name: Daily Status Reset
 on:
   schedule:
-    # Jeden Tag um 00:00 Uhr UTC (entspricht 01:00 Uhr in DE/AT)
-    - cron: '0 0 * * *'
-  workflow_dispatch: # Erlaubt es dir, den Reset manuell zum Testen zu starten
+    - cron: '0 0 * * *'  # 01:00 Uhr (Winterzeit DE) für Reset
+    - cron: '0 17 * * *' # 18:00 Uhr (Winterzeit DE) für Abwesend (UTC ist -1h)
 
 jobs:
   reset:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
       - name: Install dependencies
         run: npm install firebase-admin
-      - name: Run Reset Script
+      - name: Run Script
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: node reset_status.js
+        run: |
+          # Prüfen ob es 17:00 UTC (18:00 Uhr lokal) ist
+          if [ "$(date +%H)" = "17" ]; then
+            node evening_status.js
+          else
+            node reset_status.js
+          fi
