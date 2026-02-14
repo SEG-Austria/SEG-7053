@@ -176,18 +176,39 @@ async function recognizeFace() {
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        // 1. Hol die Daten des Nutzers aus Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        
+        if (!userDoc.exists()) {
+            console.error("Nutzerdaten nicht gefunden!");
+            return;
+        }
+
+        const userData = userDoc.data();
+
+        // 2. SOFORT-CHECK: Ist der Nutzer gesperrt?
+        if (userData.role === "Gesperrt" || userData.status === "Gesperrt") {
+            alert("Dein Account wurde gesperrt. Zugriff verweigert.");
+            await signOut(auth); // Meldet den Nutzer technisch ab
+            window.location.href = "index.html"; // Schickt ihn zum Login zurück
+            return; // Stoppt die weitere Ausführung
+        }
+
+        // 3. Wenn nicht gesperrt, lade das Dashboard normal
         loadMembers();
         loadLogs();
         initFaceAI();
 
-        // Admin-Check für Button-Sichtbarkeit
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === "Admin") {
+        // Admin-Button anzeigen
+        if (userData.role === "Admin") {
             const adminBtn = document.getElementById("adminPanelBtn");
             if (adminBtn) adminBtn.style.display = "block";
         }
     } else {
-        window.location.href = "index.html";
+        // Falls nicht eingeloggt, zum Login
+        if (!window.location.pathname.includes("index.html")) {
+            window.location.href = "index.html";
+        }
     }
 });
 
