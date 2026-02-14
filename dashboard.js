@@ -174,48 +174,50 @@ async function recognizeFace() {
 }
 
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
+// --- 4. AUTH-CHECK & INITIALISIERUNG ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const userData = userDoc.data();
+        try {
+            // 1. Hol die Daten des Nutzers aus Firestore
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            
+            if (!userDoc.exists()) {
+                console.error("Nutzerdaten nicht gefunden!");
+                return;
+            }
 
-        // Prüft, ob das Feld 'banned' auf true gesetzt ist
-        if (userData && userData.banned === true) {
-            alert("❌ ZUGRIFF VERWEIGERT: Dein Account ist gesperrt.");
-            await signOut(auth);
-            window.location.href = "index.html";
-            return; 
-        }
+            const userData = userDoc.data();
 
-        // Falls nicht gesperrt -> Normaler Ladevorgang
-        loadMembers();
-        loadLogs();
-        initFaceAI();
-        
-        if (userData.role === "Admin") {
-            document.getElementById("adminPanelBtn").style.display = "block";
+            // 2. CHECK: Ist der Nutzer gesperrt? (Feld: banned: true)
+            if (userData.banned === true) {
+                alert("❌ ZUGRIFF VERWEIGERT: Dein Account ist gesperrt.");
+                await signOut(auth);
+                window.location.href = "index.html";
+                return; 
+            }
+
+            // 3. Wenn nicht gesperrt -> Dashboard laden
+            loadMembers();
+            loadLogs();
+            initFaceAI();
+
+            // 4. Admin-Check für den Button
+            if (userData.role === "Admin") {
+                const adminBtn = document.getElementById("adminPanelBtn");
+                if (adminBtn) {
+                    adminBtn.style.display = "block";
+                    adminBtn.onclick = () => { window.location.href = "admin.html"; };
+                }
+            }
+        } catch (error) {
+            console.error("Fehler im Auth-Check:", error);
         }
     } else {
-        window.location.href = "index.html"; // Schickt ihn zum Login zurück
-            return; // Stoppt die weitere Ausführung
-        }
-
-        // 3. Wenn nicht gesperrt, lade das Dashboard normal
-        loadMembers();
-        loadLogs();
-        initFaceAI();
-
-        // Admin-Button anzeigen
-        if (userData.role === "Admin") {
-            const adminBtn = document.getElementById("adminPanelBtn");
-            if (adminBtn) adminBtn.style.display = "block";
-        }
-    } else {
-        // Falls nicht eingeloggt, zum Login
+        // Falls gar nicht eingeloggt -> zurück zum Login
         if (!window.location.pathname.includes("index.html")) {
             window.location.href = "index.html";
         }
     }
-});
+}); // <-- Diese Klammern fehlten wahrscheinlich oder waren falsch gesetzt
 
 window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
