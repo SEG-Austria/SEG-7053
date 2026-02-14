@@ -82,13 +82,20 @@ let labeledDescriptor = null;
 
 // 1. KI Modelle laden
 async function initFaceAI() {
-    const MODEL_URL = '/models'; // Pfad zu deinen Model-Dateien
-    await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
-    startVideo();
+    // Diese URL führt direkt zu den offiziellen Gewichten (Shards) im Web
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models'; 
+    
+    try {
+        console.log("Lade KI-Modelle...");
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        console.log("KI-Modelle erfolgreich geladen!");
+        startVideo();
+    } catch (e) {
+        console.error("KI konnte nicht geladen werden:", e);
+        document.getElementById('faceStatus').innerText = "KI-Fehler: Modelle nicht gefunden.";
+    }
 }
 
 function startVideo() {
