@@ -151,11 +151,27 @@ async function recognizeFace() {
 }
 
 // --- 4. AUTH-CHECK & INITIALISIERUNG ---
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
+        // 1. Daten laden
         loadMembers();
         loadLogs();
         initFaceAI();
+
+        // 2. Admin-Check für den Button
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().role === "Admin") {
+                const adminBtn = document.getElementById("adminPanelBtn");
+                if (adminBtn) {
+                    adminBtn.style.display = "block"; // Knopf anzeigen
+                    console.log("Admin erkannt: Knopf wird angezeigt.");
+                }
+            }
+        } catch (error) {
+            console.error("Fehler beim Admin-Check:", error);
+        }
+
     } else {
         window.location.href = "index.html";
     }
