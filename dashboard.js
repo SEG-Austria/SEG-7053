@@ -25,27 +25,71 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- 1. MITGLIEDERLISTE (ECHTZEIT) ---
-function loadMembers() {
-    const tableBody = document.getElementById("memberList");
-    if (!tableBody) return;
+// 🔐 Prüfen ob angemeldet
+onAuthStateChanged(auth, async (user) => {
+    const msgEl = document.getElementById("welcomeMsg");
+    
+    if (!user) {
+        console.log("Kein User eingeloggt, leite weiter...");
+        window.location.href = "index.html";
+        return;
+    }
 
-    onSnapshot(collection(db, "users"), (snapshot) => {
-        tableBody.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const row = `
-                <tr>
-                    <td>${data.username || "Unbekannt"}</td>
-                    <td><span class="role-badge ${data.role ? data.role.split(' ')[0] : ''}">${data.role || "Arbeiter"}</span></td>
-                    <td style="color: ${data.status === 'Anwesend' ? '#99cc00' : '#ff4444'}; font-weight: bold;">
-                        ${data.status || "Keine Schicht"}
-                    </td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
-    });
+    try {
+        console.log("User eingeloggt:", user.uid);
+        const snap = await getDoc(doc(db, "users", user.uid));
+        
+        if (snap.exists()) {
+            const userData = snap.data();
+            msgEl.innerText = `Willkommen, ${userData.username || "Mitglied"}`;
+            
+            // Admin-Link anzeigen falls berechtigt
+            const adminBtn = document.getElementById("adminLink");
+            if (adminBtn && userData.role === "Admin") {
+                adminBtn.style.display = "block";
+            }
+            
+            loadMembers();
+        } else {
+            msgEl.innerText = "Fehler: User-Profil nicht in Datenbank gefunden.";
+            console.error("Kein Firestore-Dokument für UID:", user.uid);
+        }
+    } catch (error) {
+        msgEl.innerText = "Fehler beim Laden des Profils.";
+        console.error("Dashboard Error:", error);
+    }
+});
+
+// 📋 Liste laden
+async function loadMembers() {
+    const list = document.getElementById("memberList");
+    try {
+        const snap = await getDocs(collection(db, "users"));
+        list.innerHTML = "";
+        
+        // In dashboard.js innerhalb von loadMembers():
+snap.forEach(d => {
+    const u = d.data();
+    if (u.banned) return;
+
+    // Status-Farbe bestimmen
+    let statusColor = "#99cc00"; // Grün
+    if (u.status === "Abwesend (Entschuldigt)") statusColor = "#ffbb33"; // Gelb
+    if (u.status === "Abwesend (Unentschuldigt)") statusColor = "#ff4444"; // Rot
+
+    const row = `
+        <tr>
+            <td>${u.username}</td>
+            <td><span class="role-badge ${u.role ? u.role.split(' ')[0] : ''}">${u.role}</span></td>
+            <td><span style="color: ${statusColor}; font-weight: bold;">● ${u.status || "Anwesend"}</span></td>
+        </tr>
+    `;
+    list.innerHTML += row;
+});
+    } catch (e) {
+        console.error("Fehler beim Laden der Mitglieder:", e);
+        list.innerHTML = "<tr><td colspan='2'>Fehler beim Laden der Liste.</td></tr>";
+    }
 }
 
 // --- 2. LOGS LADEN (LETZTE 10) ---
