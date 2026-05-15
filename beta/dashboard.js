@@ -25,15 +25,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔐 Prüfen ob angemeldet
 let memberUnsubscribe = null;
-let logUnsubscribe = null;
 
 // 📋 Liste laden
 function loadMembers() {
     const list = document.getElementById("memberList");
     try {
         if (memberUnsubscribe) memberUnsubscribe();
+        // Use onSnapshot for real-time updates
         memberUnsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
             list.innerHTML = "";
         
@@ -41,13 +40,10 @@ function loadMembers() {
                 const u = d.data();
                 if (u.banned) return;
 
-                const statusNormalized = (u.status || "Anwesend").toLowerCase();
-
                 // Status-Farbe bestimmen
                 let statusColor = "var(--success)"; // Grün
-                if (statusNormalized.includes("entschuldigt") && !statusNormalized.includes("unentschuldigt")) statusColor = "var(--warning)"; 
-                if (statusNormalized.includes("unentschuldigt")) statusColor = "var(--danger)";
-                if (statusNormalized === "keine schicht") statusColor = "#888"; // Grey for no shift
+                if (u.status === "Abwesend (Entschuldigt)") statusColor = "var(--warning)"; // Gelb
+                if (u.status === "Abwesend (Unentschuldigt)") statusColor = "var(--danger)"; // Rot
 
                 const row = `
                     <tr>
@@ -70,9 +66,8 @@ function loadLogs() {
     const logBox = document.getElementById("logList");
     if (!logBox) return;
 
-    if (logUnsubscribe) logUnsubscribe();
     const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-    logUnsubscribe = onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
+    onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
@@ -142,8 +137,4 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.logout = () => signOut(auth).then(() => {
-    if (memberUnsubscribe) memberUnsubscribe();
-    if (logUnsubscribe) logUnsubscribe();
-    window.location.href = "index.html";
-});
+window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
