@@ -4,15 +4,11 @@ import {
     getFirestore, 
     doc, 
     getDoc, 
-    updateDoc, 
     collection, 
-    getDocs, 
     query, 
     orderBy, 
     limit, 
-    onSnapshot,
-    addDoc,
-    serverTimestamp 
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -74,105 +70,6 @@ function loadLogs() {
     });
 }
 
-// --- 3. GESICHTSERKENNUNG ---
-async function initFaceAI() {
-    const status = document.getElementById('faceStatus');
-    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models'; 
-
-    try {
-        if(status) status.innerText = "Lade Biometrie-Module...";
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        
-        if(status) status.innerText = "KI bereit. Kamera startet...";
-        startVideo();
-    } catch (e) {
-        console.error("Face-API Fehler:", e);
-        if(status) status.innerText = "Gesichtsscan-Modul konnte nicht geladen werden.";
-    }
-}
-
-function startVideo() {
-    const video = document.getElementById('video');
-    if (!video) return;
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-        .then(stream => {
-            video.srcObject = stream;
-            recognizeFace();
-        })
-        .catch(err => {
-            console.error("Kamera-Zugriff verweigert:", err);
-            const status = document.getElementById('faceStatus');
-            if(status) status.innerText = "Kamera-Zugriff blockiert (Safari-Einstellungen prüfen).";
-        });
-}
-
-window.registerFace = async () => {
-    const video = document.getElementById('video');
-    const status = document.getElementById('faceStatus');
-    
-    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-    if (detections) {
-        const user = auth.currentUser;
-        const faceArray = Array.from(detections.descriptor);
-        await updateDoc(doc(db, "users", user.uid), { faceDescriptor: faceArray });
-        alert("Gesichtsprofil erfolgreich gespeichert!");
-        location.reload(); 
-    } else {
-        alert("Kein Gesicht erkannt. Bitte direkt in die Kamera schauen.");
-    }
-};
-
-async function recognizeFace() {
-    const video = document.getElementById('video');
-    const status = document.getElementById('faceStatus');
-    const user = auth.currentUser;
-
-    const userSnap = await getDoc(doc(db, "users", user.uid));
-    const savedDescriptor = userSnap.data().faceDescriptor;
-
-    if (!savedDescriptor) {
-        if(status) status.innerText = "Kein Profil gefunden. Bitte Scannen.";
-        document.getElementById('regBtn').style.display = "block";
-        return;
-    }
-
-    const faceMatcher = new faceapi.FaceMatcher(new faceapi.LabeledFaceDescriptors(
-        user.uid, [new Float32Array(savedDescriptor)]
-    ), 0.6);
-
-    setInterval(async () => {
-        const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceDescriptor();
-
-        if (detections) {
-            const match = faceMatcher.findBestMatch(detections.descriptor);
-            if (match.label !== 'unknown') {
-                if(status) status.innerHTML = "<span style='color: #99cc00;'>✅ Identität bestätigt!</span>";
-                
-                // Status auf Anwesend setzen, falls nicht schon geschehen
-                if (userSnap.data().status !== "Anwesend") {
-                    await updateDoc(doc(db, "users", user.uid), { status: "Anwesend" });
-                    await addDoc(collection(db, "logs"), {
-                        targetUser: userSnap.data().username,
-                        newStatus: "Anwesend (Face-ID)",
-                        changedAt: serverTimestamp(),
-                        changedBy: "System (Biometrie)"
-                    });
-                }
-            } else {
-                if(status) status.innerHTML = "<span style='color: #ff4444;'>❌ Unbekannt...</span>";
-            }
-        }
-    }, 3000);
-}
-
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
 // --- 4. AUTH-CHECK & INITIALISIERUNG ---
 onAuthStateChanged(auth, async (user) => {
@@ -199,7 +96,6 @@ onAuthStateChanged(auth, async (user) => {
             // 3. Wenn nicht gesperrt -> Dashboard laden
             loadMembers();
             loadLogs();
-            initFaceAI();
 
             // 4. Admin-Check für den Button
             if (userData.role === "Admin") {
