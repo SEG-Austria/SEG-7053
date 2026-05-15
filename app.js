@@ -15,6 +15,19 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// --- OPTIONAL: BETA PASSWORD GATE ---
+const isBeta = window.location.pathname.includes("/beta/");
+if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
+    const betaCode = "beta2026"; // Set your desired password here
+    const entry = prompt("Bitte Beta-Zugangsschlüssel eingeben:");
+    if (entry === betaCode) {
+        localStorage.setItem("seg_beta_authorized", "true");
+    } else {
+        alert("Zugriff verweigert.");
+        window.location.href = "../index.html"; // Redirect back to main
+    }
+}
+
 // --- NEWS LADEN (ÖFFENTLICH) ---
 const newsRef = doc(db, "system", "news");
 onSnapshot(newsRef, (snap) => {
