@@ -141,7 +141,7 @@ onAuthStateChanged(auth, async (user) => {
             loadLogs();
 
             // 4. Admin-Check für den Button
-            if (userData.role === "Admin" || userData.username === "WebsiteAdministration") {
+            if (userData.role === "Admin") {
                 const adminBtn = document.getElementById("adminPanelBtn");
                 if (adminBtn) {
                     adminBtn.style.display = "block";
