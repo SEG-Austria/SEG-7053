@@ -11,6 +11,10 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// --- GLOBAL VARIABLES & STATE ---
+let memberUnsubscribe = null;
+let logUnsubscribe = null;
+
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
     authDomain: "seg-austria.firebaseapp.com",
@@ -43,8 +47,6 @@ if (isBeta) {
     const betaBadge = document.getElementById("betaBadge");
     if (betaBadge) betaBadge.style.display = "inline-block";
 }
-
-let memberUnsubscribe = null;
 
 // 📋 Liste laden
 function loadMembers() {
@@ -93,7 +95,7 @@ function loadLogs() {
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
-            const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
+            const zeit = (l.changedAt && typeof l.changedAt.toDate === 'function') ? l.changedAt.toDate().toLocaleString('de-DE') : "Synchronisiere...";
             logBox.innerHTML += `
                 <div class="log-item">
                     <span style="color: #888; font-size: 0.75em;">[${zeit}]</span><br>
@@ -141,11 +143,13 @@ onAuthStateChanged(auth, async (user) => {
             loadLogs();
 
             // 4. Admin-Check für den Button
-            if (userData.role === "Admin") {
+            const username = (userData.username || "").trim().toLowerCase();
+            const isAdmin = userData.role === "Admin" || username === "websiteadministration";
+
+            if (isAdmin) {
                 const adminBtn = document.getElementById("adminPanelBtn");
                 if (adminBtn) {
                     adminBtn.style.display = "block";
-                    adminBtn.onclick = () => { window.location.href = "admin.html"; };
                 }
             }
         } catch (error) {
