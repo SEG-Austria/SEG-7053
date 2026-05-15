@@ -40,7 +40,8 @@ onSnapshot(newsRef, (snap) => {
 // --- AUTOMATISCHE WEITERLEITUNG ---
 // Wenn der User schon eingeloggt ist, schick ihn direkt zum Dashboard
 onAuthStateChanged(auth, (user) => {
-    if (user && window.location.pathname.includes("index.html")) {
+    const isLoginPage = window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/");
+    if (user && isLoginPage) {
         window.location.href = "dashboard.html";
     }
 });

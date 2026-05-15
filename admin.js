@@ -10,6 +10,7 @@ import {
     collection, 
     getDocs, 
     doc, 
+    writeBatch,
     getDoc, 
     setDoc, 
     updateDoc, 
@@ -63,7 +64,7 @@ async function checkDailyReset() {
             console.log("Neuer Tag erkannt! Setze alle Status auf 'Keine Schicht'...");
             
             const usersSnap = await getDocs(collection(db, "users"));
-            const batch = db.batch(); // Use batch for efficiency
+            const batch = writeBatch(db); // Use modular writeBatch
 
             usersSnap.forEach(uDoc => {
                 batch.update(uDoc.ref, { status: "Keine Schicht" });
