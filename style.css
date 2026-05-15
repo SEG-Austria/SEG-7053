@@ -192,6 +192,14 @@ tbody tr:last-child td {
   font-size: 0.9em;
 }
 
+.news-box {
+  border-left: 4px solid var(--primary-gold);
+  background: rgba(255, 215, 0, 0.05);
+  margin-bottom: 20px;
+  text-align: left;
+  animation: fadeIn 0.8s ease;
+}
+
 .log-item {
   border-bottom: 1px dashed #333; /* Dashed separator */
   padding: var(--spacing-xs) 0;
