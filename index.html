@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEG Austria - Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="header">
+        <img src="modern_logo.png" alt="SEG Logo" class="logo">
+        <h1 class="text-gold" style="margin: 10px 0; letter-spacing: 2px;">SEG AUSTRIA</h1>
+    </div>
+
+    <div class="container news-box" id="newsBox">
+        <h3 class="text-gold" style="margin-top: 0; font-size: 0.9em; letter-spacing: 1px;">📢 ANKÜNDIGUNG</h3>
+        <p id="newsContent" class="text-light" style="margin: 0; font-size: 0.95em; line-height: 1.5;">Lade News...</p>
+    </div>
+
+    <div class="container login-box">
+        <h2 class="text-gold" style="text-align: center; margin-bottom: var(--spacing-xl);">Willkommen</h2>
+        
+        <div class="input-group">
+            <label class="text-gold" style="font-size: 0.8em;">BENUTZERNAME</label>
+            <input type="text" id="loginEmail" placeholder="Dein Vorname...">
+        </div>
+
+        <div class="input-group">
+            <label class="text-gold" style="font-size: 0.8em;">PASSWORT</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+
+        <button id="loginBtn" onclick="window.login()" class="mt-lg" style="font-size: 1.1em; letter-spacing: 1px;">ANMELDEN</button>
+        
+        <p id="errorMsg" class="text-danger" style="text-align: center; margin-top: var(--spacing-md); font-size: 0.9em; min-height: 1.2em;"></p>
+    </div>
+
+    <p class="text-muted" style="margin-top: var(--spacing-xl); font-size: 0.7em; letter-spacing: 2px;">© SEG 2026</p>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
