@@ -184,8 +184,6 @@ tbody tr:last-child td {
 
 /* --- LOG BOX --- */
 .log-container {
-  max-height: 350px; /* Slightly taller */
-  overflow-y: auto;
   background: #1a1a1a; /* Darker background for logs */
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
