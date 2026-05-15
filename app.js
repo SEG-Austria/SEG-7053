@@ -16,7 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- OPTIONAL: BETA PASSWORD GATE ---
-const isBeta = window.location.pathname.includes("/beta/");
+const isBeta = window.location.pathname.includes("/beta");
 if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
     const betaCode = "beta2026"; // Set your desired password here
     const entry = prompt("Bitte Beta-Zugangsschlüssel eingeben:");
@@ -24,8 +24,14 @@ if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
         localStorage.setItem("seg_beta_authorized", "true");
     } else {
         alert("Zugriff verweigert.");
-        window.location.href = "../index.html"; // Redirect back to main
+        window.location.href = window.location.origin + window.location.pathname.split("/beta")[0] + "/";
     }
+}
+
+// Zeige Beta-Badge, wenn auf Beta-Pfad
+if (isBeta) {
+    const betaBadge = document.getElementById("betaBadge");
+    if (betaBadge) betaBadge.style.display = "inline-block";
 }
 
 // --- NEWS LADEN (ÖFFENTLICH) ---

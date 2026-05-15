@@ -25,13 +25,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 🔐 Prüfen ob angemeldet
+let memberUnsubscribe = null;
+
 // 📋 Liste laden
-async function loadMembers() {
+function loadMembers() {
     const list = document.getElementById("memberList");
     try {
+        if (memberUnsubscribe) memberUnsubscribe();
         // Use onSnapshot for real-time updates
-        onSnapshot(collection(db, "users"), (snapshot) => {
+        memberUnsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
             list.innerHTML = "";
         
             snapshot.forEach(d => {

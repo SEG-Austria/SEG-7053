@@ -200,6 +200,17 @@ tbody tr:last-child td {
   animation: fadeIn 0.8s ease;
 }
 
+.beta-badge {
+  background-color: var(--danger);
+  color: white;
+  padding: 4px 10px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-left: var(--spacing-sm);
+  display: none; /* JS toggles this */
+}
+
 .log-item {
   border-bottom: 1px dashed #333; /* Dashed separator */
   padding: var(--spacing-xs) 0;
