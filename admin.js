@@ -125,6 +125,25 @@ async function loadUsers() {
     }
 }
 
+// --- NEWS FUNKTIONEN ---
+async function loadCurrentNews() {
+    const newsInput = document.getElementById("newsInput");
+    if (!newsInput) return;
+    const snap = await getDoc(doc(db, "system", "news"));
+    if (snap.exists()) newsInput.value = snap.data().text || "";
+}
+
+window.updateNews = async () => {
+    const newsText = document.getElementById("newsInput").value;
+    try {
+        await setDoc(doc(db, "system", "news"), { 
+            text: newsText, 
+            updatedAt: serverTimestamp() 
+        });
+        alert("News erfolgreich aktualisiert!");
+    } catch (e) { alert("Fehler: " + e.message); }
+};
+
 // --- WINDOW FUNKTIONEN (GLOBALE EVENTS) ---
 
 window.createUser = async () => {
@@ -223,6 +242,7 @@ onAuthStateChanged(auth, async (user) => {
             // Only call checkDailyReset and loadUsers once after admin check
             await checkDailyReset();
             loadUsers();
+            loadCurrentNews();
         }
     } catch (e) {
         console.error("Auth-Error:", e);

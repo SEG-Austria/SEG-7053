@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
@@ -12,6 +13,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
+// --- NEWS LADEN (ÖFFENTLICH) ---
+const newsRef = doc(db, "system", "news");
+onSnapshot(newsRef, (snap) => {
+    const newsEl = document.getElementById("newsContent");
+    if (snap.exists() && newsEl) {
+        newsEl.innerText = snap.data().text || "Keine aktuellen Neuigkeiten.";
+    }
+});
 
 // --- AUTOMATISCHE WEITERLEITUNG ---
 // Wenn der User schon eingeloggt ist, schick ihn direkt zum Dashboard
@@ -49,8 +60,6 @@ window.login = async () => {
     const user = userCredential.user;
 
     // 2. Rolle aus Firestore abrufen
-    const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-    const db = getFirestore(app);
     const userDoc = await getDoc(doc(db, "users", user.uid));
 
     if (userDoc.exists() && userDoc.data().role === "Admin") {
