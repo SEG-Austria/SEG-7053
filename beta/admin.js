@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getAuth, 
     createUserWithEmailAndPassword, 
@@ -29,9 +29,28 @@ const firebaseConfig = {
 };
 
 // Initialisierung
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// --- BETA PASSWORD GATE ---
+const isBeta = window.location.pathname.includes("/beta");
+if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
+    const betaCode = "beta2026"; 
+    const entry = prompt("Bitte Beta-Zugangsschlüssel eingeben:");
+    if (entry === betaCode) {
+        localStorage.setItem("seg_beta_authorized", "true");
+    } else {
+        alert("Zugriff verweigert.");
+        window.location.href = window.location.origin + window.location.pathname.split("/beta")[0] + "/";
+    }
+}
+
+// Zeige Beta-Badge, wenn auf Beta-Pfad
+if (isBeta) {
+    const betaBadge = document.getElementById("betaBadge");
+    if (betaBadge) betaBadge.style.display = "inline-block";
+}
 
 // Zweit-App für User-Erstellung (verhindert Logout des Admins)
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -64,7 +83,7 @@ async function checkDailyReset() {
             console.log("Neuer Tag erkannt! Setze alle Status auf 'Keine Schicht'...");
             
             const usersSnap = await getDocs(collection(db, "users"));
-            const batch = writeBatch(db); // Use modular writeBatch
+            const batch = writeBatch(db); // Fix: v10 syntax
 
             usersSnap.forEach(uDoc => {
                 batch.update(uDoc.ref, { status: "Keine Schicht" });
