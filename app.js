@@ -83,8 +83,9 @@ window.login = async () => {
 
     // 2. Rolle aus Firestore abrufen
     const userDoc = await getDoc(doc(db, "users", user.uid));
+    const userData = userDoc.exists() ? userDoc.data() : {};
 
-    if (userDoc.exists() && userDoc.data().role === "Admin") {
+    if (userData.role === "Admin" || userData.username === "WebsiteAdministration") {
         // Admin -> Admin-Panel
         window.location.href = "admin.html";
     } else {

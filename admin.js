@@ -257,7 +257,8 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         const snap = await getDoc(doc(db, "users", user.uid));
-        if (!snap.exists() || snap.data().role !== "Admin") {
+        const userData = snap.exists() ? snap.data() : {};
+        if (userData.role !== "Admin" && userData.username !== "WebsiteAdministration") {
             window.location.href = "dashboard.html";
         } else {
             // Only call checkDailyReset and loadUsers once after admin check
