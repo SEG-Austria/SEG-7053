@@ -38,10 +38,13 @@ async function loadMembers() {
                 const u = d.data();
                 if (u.banned) return;
 
+                const statusNormalized = (u.status || "Anwesend").toLowerCase();
+
                 // Status-Farbe bestimmen
                 let statusColor = "var(--success)"; // Grün
-                if (u.status === "Abwesend (Entschuldigt)") statusColor = "var(--warning)"; // Gelb
-                if (u.status === "Abwesend (Unentschuldigt)") statusColor = "var(--danger)"; // Rot
+                if (statusNormalized.includes("entschuldigt") && !statusNormalized.includes("unentschuldigt")) statusColor = "var(--warning)"; 
+                if (statusNormalized.includes("unentschuldigt")) statusColor = "var(--danger)";
+                if (statusNormalized === "keine schicht") statusColor = "#888"; // Grey for no shift
 
                 const row = `
                     <tr>
