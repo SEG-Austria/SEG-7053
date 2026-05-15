@@ -23,8 +23,16 @@ if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
     if (entry === betaCode) {
         localStorage.setItem("seg_beta_authorized", "true");
     } else {
-        alert("Zugriff verweigert.");
+        alert("Zugriff verweigert: Falscher Schlüssel.");
         window.location.href = window.location.origin + window.location.pathname.split("/beta")[0] + "/";
+    }
+}
+
+// Zeige Beta-Badge, wenn auf Beta-Pfad
+if (isBeta) {
+    const betaBadge = document.getElementById("betaBadge");
+    if (betaBadge) {
+        betaBadge.style.display = "inline-block";
     }
 }
 
@@ -46,7 +54,8 @@ onSnapshot(newsRef, (snap) => {
 // --- AUTOMATISCHE WEITERLEITUNG ---
 // Wenn der User schon eingeloggt ist, schick ihn direkt zum Dashboard
 onAuthStateChanged(auth, (user) => {
-    if (user && window.location.pathname.includes("index.html")) {
+    const isLoginPage = window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/");
+    if (user && isLoginPage) {
         window.location.href = "dashboard.html";
     }
 });
