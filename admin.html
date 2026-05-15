@@ -8,7 +8,7 @@
         .container { max-width: 800px; } /* Admin Panel breiter */
     </style>
 </head>
-<body>
+<body class="admin-page">
     <div class="header">
         <img src="logo.png" class="logo" style="max-width: 80px;">
         <h1>🛡️ SEG Admin Panel</h1>
@@ -32,7 +32,6 @@
                 <option>General</option>
                 <option>Co-Anführer</option>
                 <option>Anführer</option>
-                <option>Krank / Vorübergehend nicht verfügbar</option>
                 <option>Admin</option>
             </select>
         </div>
@@ -42,16 +41,17 @@
 
         <h3>Mitglieder verwalten</h3>
         <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Rolle</th>
-                    <th>Status</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody id="userList"></tbody>
-        </table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Rolle</th>
+            <th>Anwesenheit</th>
+            <th>Account</th>
+            <th>Aktion</th>
+        </tr>
+    </thead>
+    <tbody id="userList"></tbody>
+</table>
         <p id="status" class="status"></p>
     </div>
 

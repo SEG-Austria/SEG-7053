@@ -2,23 +2,35 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>SEG - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEG Austria - Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="login-page">
     <div class="header">
-        <img src="logo.png" class="logo">
-        <h1>SEG – Super Elite Gräber</h1>
+        <img src="logo.png" alt="SEG Logo" class="logo">
+        <h1 style="color: var(--primary-gold); margin: 10px 0; font-family: 'Georgia', serif; letter-spacing: 2px;">SEG AUSTRIA</h1>
     </div>
 
-    <div class="container">
-        <h2>Anmeldung</h2>
-        <input id="username" placeholder="Username">
-        <input id="password" type="password" placeholder="Passwort">
-        <button onclick="window.login()">Login</button>
-        <button onclick="window.register()" style="background: none; color: var(--primary-gold); margin-top: 10px;">Jetzt Registrieren</button>
-        <p id="status" class="status"></p>
+    <div class="container login-box">
+        <h2 style="text-align: center; color: var(--primary-gold); margin-bottom: 25px;">Willkommen</h2>
+        
+        <div class="input-group">
+            <label style="font-size: 0.8em; color: var(--primary-gold);">BENUTZERNAME</label>
+            <input type="text" id="loginEmail" placeholder="Dein Vorname...">
+        </div>
+
+        <div class="input-group">
+            <label style="font-size: 0.8em; color: var(--primary-gold);">PASSWORT</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+
+        <button id="loginBtn" onclick="window.login()" style="margin-top: 20px; font-size: 1.1em; letter-spacing: 1px;">ANMELDEN</button>
+        
+        <p id="errorMsg" style="color: var(--danger); text-align: center; margin-top: 15px; font-size: 0.9em; min-height: 1.2em;"></p>
     </div>
+
+    <p style="margin-top: 30px; color: #555; font-size: 0.7em; letter-spacing: 2px;">© SEG 2026</p>
 
     <script type="module" src="app.js"></script>
 </body>

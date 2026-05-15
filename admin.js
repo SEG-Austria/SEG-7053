@@ -2,7 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { 
     getAuth, 
     createUserWithEmailAndPassword, 
-    onAuthStateChanged 
+    onAuthStateChanged, 
+    signOut 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, 
@@ -12,7 +13,9 @@ import {
     getDoc, 
     setDoc, 
     updateDoc, 
-    deleteDoc 
+    deleteDoc,
+    addDoc,
+    serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -21,71 +24,73 @@ const firebaseConfig = {
     projectId: "seg-austria",
     storageBucket: "seg-austria.firebasestorage.app",
     messagingSenderId: "101261189931",
-    appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e",
-    measurementId: "G-C0QLYYD6Q5"
+    appId: "1:101261189931:web:4f6b5bd9008f5f64bd1b6e"
 };
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ... (ganz unten in der Datei)
-
-window.logout = async () => {
-    try {
-        await signOut(auth); // auth ist bereits oben in deiner admin.js definiert
-        window.location.href = "index.html";
-    } catch (e) {
-        console.error("Logout Fehler:", e);
-        alert("Abmelden fehlgeschlagen!");
-    }
-};
-// --- INITIALISIERUNG ---
+// Initialisierung
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Zweit-App für User-Erstellung ohne Admin-Logout
+// Zweit-App für User-Erstellung (verhindert Logout des Admins)
 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
-function fakeEmail(username) {
-    return username.toLowerCase().trim() + "@seg.local";
-}
+// Konfigurationen
+const roles = [
+    "Anfänger", "Schlechter Arbeiter", "Mittelmäßiger Arbeiter", 
+    "Guter Arbeiter", "Bester Arbeiter", "General", 
+    "Co-Anführer", "Anführer", "Krank / Vorübergehend nicht verfügbar", "Admin"
+];
 
-// --- FUNKTIONEN ---
+const statusOptions = [
+    "Anwesend", 
+    "Abwesend (Entschuldigt)", 
+    "Abwesend (Unentschuldigt)",
+    "Keine Schicht"
+];
 
-// 1. Neuen User erstellen
-window.createUser = async () => {
-    const uEl = document.getElementById("newUsername");
-    const pEl = document.getElementById("newPassword");
-    const rEl = document.getElementById("newRole");
-
-    if (!uEl.value || !pEl.value) {
-        alert("Username & Passwort fehlen!");
-        return;
-    }
+// --- KERNFUNKTIONEN ---
+async function checkDailyReset() {
+    const today = new Date().toLocaleDateString('de-DE');
+    const resetRef = doc(db, "system", "lastReset");
 
     try {
-        const cred = await createUserWithEmailAndPassword(secondaryAuth, fakeEmail(uEl.value), pEl.value);
-        await setDoc(doc(db, "users", cred.user.uid), {
-            username: uEl.value,
-            role: rEl.value,
-            banned: false
-        });
+        const resetSnap = await getDoc(resetRef);
+        
+        // Wenn das Datum in der Datenbank nicht von heute ist -> RESET
+        if (!resetSnap.exists() || resetSnap.data().date !== today) {
+            console.log("Neuer Tag erkannt! Setze alle Status auf 'Keine Schicht'...");
+            
+            const usersSnap = await getDocs(collection(db, "users"));
+            
+            // Alle User durchgehen und Status ändern
+            const updatePromises = usersSnap.docs.map(uDoc => 
+                updateDoc(doc(db, "users", uDoc.id), { status: "Keine Schicht" })
+            );
+            
+            await Promise.all(updatePromises);
 
-        alert(`User ${uEl.value} erfolgreich erstellt! ✔`);
-        uEl.value = "";
-        pEl.value = "";
-        loadUsers();
+            // Das Reset-Datum in der Datenbank aktualisieren
+            await setDoc(resetRef, { date: today });
+
+            // Optional: Einen Log-Eintrag erstellen
+            await addDoc(collection(db, "logs"), {
+                targetUser: "SYSTEM",
+                newStatus: "Täglicher Reset (Alle auf Keine Schicht)",
+                changedAt: serverTimestamp(),
+                changedBy: "Automatisches System"
+            });
+
+            console.log("Täglicher Reset abgeschlossen.");
+        }
     } catch (e) {
-        alert("Fehler: " + e.message);
+        console.error("Fehler beim Daily Reset:", e);
     }
-};
-
-// 2. User-Liste laden
+}
 async function loadUsers() {
     const userList = document.getElementById("userList");
     if (!userList) return;
-
-    userList.innerHTML = "<tr><td colspan='4'>Lade Daten...</td></tr>";
 
     try {
         const snap = await getDocs(collection(db, "users"));
@@ -93,21 +98,8 @@ async function loadUsers() {
 
         snap.forEach(d => {
             const u = d.data();
-            // In der loadUsers Funktion deiner admin.js
-            const roles = [
-                "Anfänger", 
-                "Schlechter Arbeiter", 
-                "Mittelmäßiger Arbeiter", 
-                "Guter Arbeiter", 
-                "Bester Arbeiter", 
-                "General", 
-                "Co-Anführer", 
-                "Anführer", 
-                "Krank / Vorübergehend nicht verfügbar", 
-                "Admin"
-            ];
-            
             const row = document.createElement("tr");
+            
             row.innerHTML = `
                 <td>${u.username || "Unbekannt"}</td>
                 <td>
@@ -115,66 +107,126 @@ async function loadUsers() {
                         ${roles.map(r => `<option value="${r}" ${u.role === r ? "selected" : ""}>${r}</option>`).join("")}
                     </select>
                 </td>
+                <td>
+                    <select onchange="window.setStatus('${d.id}', this.value)">
+                        ${statusOptions.map(s => `<option value="${s}" ${u.status === s ? "selected" : ""}>${s}</option>`).join("")}
+                    </select>
+                </td>
                 <td>${u.banned ? "🚫 Gesperrt" : "✅ Aktiv"}</td>
                 <td>
-                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">
-                        ${u.banned ? "Entsperren" : "Sperren"}
-                    </button>
-                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px;">Löschen</button>
+                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">${u.banned ? "Entsperren" : "Sperren"}</button>
+                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px; background:none; border:1px solid red; cursor:pointer;">X</button>
                 </td>
             `;
             userList.appendChild(row);
         });
     } catch (e) {
-        console.error(e);
-        userList.innerHTML = "<tr><td colspan='4'>Fehler: " + e.message + "</td></tr>";
+        console.error("Fehler beim Laden der User:", e);
     }
 }
 
-// 3. Rolle ändern
-window.setRole = async (uid, newRole) => {
+// --- WINDOW FUNKTIONEN (GLOBALE EVENTS) ---
+
+window.createUser = async () => {
+    const uEl = document.getElementById("newUsername");
+    const pEl = document.getElementById("newPassword");
+    const rEl = document.getElementById("newRole");
+    if (!uEl.value || !pEl.value) return alert("Username oder Passwort fehlt!");
+
     try {
-        await updateDoc(doc(db, "users", uid), { role: newRole });
-        console.log("Rolle aktualisiert");
-    } catch (e) {
-        alert("Fehler: " + e.message);
-    }
+        const email = uEl.value.toLowerCase().trim() + "@seg.local";
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, email, pEl.value);
+        
+        await setDoc(doc(db, "users", cred.user.uid), {
+            username: uEl.value,
+            role: rEl.value,
+            status: "Anwesend",
+            banned: false
+        });
+
+        alert(`User ${uEl.value} wurde erstellt!`);
+        uEl.value = ""; pEl.value = "";
+        loadUsers();
+    } catch (e) { alert("Fehler: " + e.message); }
 };
 
-// 4. Sperren / Entsperren
+window.setRole = async (uid, newRole) => {
+    try {
+        const userSnap = await getDoc(doc(db, "users", uid));
+        const username = userSnap.exists() ? userSnap.data().username : "Unbekannt";
+
+        await updateDoc(doc(db, "users", uid), { role: newRole });
+
+        // LOGGING
+        await addDoc(collection(db, "logs"), {
+            targetUser: username,
+            newStatus: `Beförderung/Rang: ${newRole}`,
+            changedAt: serverTimestamp(),
+            changedBy: auth.currentUser.email
+        });
+        console.log("Rolle geändert & Log erstellt.");
+    } catch (e) { console.error(e); }
+};
+
+window.setStatus = async (uid, newStatus) => {
+    try {
+        const userSnap = await getDoc(doc(db, "users", uid));
+        const username = userSnap.exists() ? userSnap.data().username : "Unbekannt";
+
+        await updateDoc(doc(db, "users", uid), { status: newStatus });
+
+        // LOGGING
+        await addDoc(collection(db, "logs"), {
+            targetUser: username,
+            newStatus: newStatus,
+            changedAt: serverTimestamp(),
+            changedBy: auth.currentUser.email
+        });
+        console.log("Status geändert & Log erstellt.");
+    } catch (e) { console.error(e); }
+};
+
 window.toggleBan = async (uid, isBanned) => {
     try {
         await updateDoc(doc(db, "users", uid), { banned: !isBanned });
         loadUsers();
-    } catch (e) {
-        alert("Fehler: " + e.message);
-    }
+    } catch (e) { console.error(e); }
 };
 
-// 5. User löschen
 window.removeUser = async (uid) => {
-    if (confirm("Diesen User wirklich aus der Datenbank löschen?")) {
+    if (confirm("Möchtest du diesen Account wirklich löschen?")) {
         try {
             await deleteDoc(doc(db, "users", uid));
             loadUsers();
-        } catch (e) {
-            alert("Fehler: " + e.message);
-        }
+        } catch (e) { console.error(e); }
     }
 };
 
-// --- AUTH CHECK ---
+window.logout = async () => {
+    await signOut(auth);
+    window.location.href = "index.html";
+};
+
+// --- AUTH CHECK & START ---
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        document.body.innerHTML = "<h2 style='color:red'>Zugriff verweigert. Bitte erst einloggen!</h2>";
+        window.location.href = "index.html";
         return;
     }
-
     const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists() || snap.data().role !== "Admin") {
-        document.body.innerHTML = "<h2 style='color:red'>Kein Admin-Zugriff für: " + (snap.data()?.username || "unbekannt") + "</h2>";
-        return;
+        if (snap.exists() && snap.data().role === "Admin") {
+            await checkDailyReset(); // <--- Hier einfügen
+            loadUsers();
+        }
+    try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!snap.exists() || snap.data().role !== "Admin") {
+            window.location.href = "dashboard.html";
+        } else {
+            loadUsers();
+        }
+    } catch (e) {
+        console.error("Auth-Error:", e);
     }
-
-    loadUsers(); 
 });

@@ -2,38 +2,52 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>SEG - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEG Austria - Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dashboard-page">
+
     <div class="header">
         <img src="logo.png" alt="SEG Logo" class="logo">
-        <h1>SEG – Mitgliederbereich</h1>
+        <h1 style="color: var(--primary-gold); margin: 5px 0;">SEG - Mitglieder</h1>
+        <button id="adminPanelBtn" 
+        onclick="window.location.href='admin.html'" 
+        style="display: none; background: #c5a059; color: black; font-weight: bold; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
+    🛠 ADMIN PANEL
+</button>
     </div>
 
-    <div class="container" style="max-width: 600px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 id="welcomeMsg">Lade Profil...</h3>
-            <button onclick="window.logout()" style="width: auto; background: #444; color: white; padding: 5px 15px;">Abmelden</button>
+    <div class="main-content">
+        
+        <div class="dashboard-grid">
+            <div class="container list-container">
+                <h2 style="color: var(--primary-gold);">ANWESENHEIT</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NAME</th>
+                            <th>ROLLE</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberList">
+                        <tr><td colspan="3" style="text-align: center;">Lade Daten...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="container log-container">
+                <h2 style="color: var(--primary-gold);">AKTIVITÄT</h2>
+                <div id="logList" style="max-height: 300px; overflow-y: auto;">
+                    </div>
+            </div>
         </div>
 
-        <p style="color: var(--primary-gold); font-size: 0.9em;">Hier findest du alle aktiven Mitglieder der Super Elite Gräber:</p>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Rang</th>
-                </tr>
-            </thead>
-            <tbody id="memberList"></tbody>
-        </table>
-
-        <div id="adminLink" style="margin-top: 20px; text-align: center; display: none;">
-            <a href="admin.html" style="color: var(--primary-gold); text-decoration: none; font-size: 0.8em; border: 1px solid var(--primary-gold); padding: 5px 10px; border-radius: 4px;">🛡️ Admin Panel</a>
-        </div>
+        <button onclick="window.logout()" style="margin-top: 30px; background: transparent; border: 1px solid var(--danger); color: var(--danger);">ABMELDEN</button>
     </div>
 
-    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="app.js"></script> <script type="module" src="dashboard.js"></script>
+
 </body>
 </html>
