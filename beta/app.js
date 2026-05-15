@@ -28,9 +28,15 @@ if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
     }
 }
 
-/**
- * Display the Beta-Badge if the current path is identified as a beta environment.
- */
+// Zeige Beta-Badge, wenn auf Beta-Pfad
+if (isBeta) {
+    const betaBadge = document.getElementById("betaBadge");
+    if (betaBadge) {
+        betaBadge.style.display = "inline-block";
+    }
+}
+
+// Zeige Beta-Badge, wenn auf Beta-Pfad
 if (isBeta) {
     const betaBadge = document.getElementById("betaBadge");
     if (betaBadge) betaBadge.style.display = "inline-block";
@@ -83,11 +89,8 @@ window.login = async () => {
 
     // 2. Rolle aus Firestore abrufen
     const userDoc = await getDoc(doc(db, "users", user.uid));
-    const userData = userDoc.exists() ? userDoc.data() : {};
-    
-    const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
 
-    if (isAdmin) {
+    if (userDoc.exists() && userDoc.data().role === "Admin") {
         // Admin -> Admin-Panel
         window.location.href = "admin.html";
     } else {

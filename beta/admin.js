@@ -119,7 +119,6 @@ async function loadUsers() {
         snap.forEach(d => {
             const u = d.data();
             const row = document.createElement("tr");
-            const userId = d.id;
             
             row.innerHTML = `
                 <td>${u.username || "Unbekannt"}</td>
@@ -135,8 +134,8 @@ async function loadUsers() {
                 </td>
                 <td>${u.banned ? "🚫 Gesperrt" : "✅ Aktiv"}</td>
                 <td>
-                    <button onclick="window.toggleBan('${userId}', ${!!u.banned})">${u.banned ? "Entsperren" : "Sperren"}</button>
-                    <button onclick="window.removeUser('${userId}')" style="color:red; margin-left:10px; background:none; border:1px solid red; cursor:pointer;">X</button>
+                    <button onclick="window.toggleBan('${d.id}', ${u.banned})">${u.banned ? "Entsperren" : "Sperren"}</button>
+                    <button onclick="window.removeUser('${d.id}')" style="color:red; margin-left:10px; background:none; border:1px solid red; cursor:pointer;">X</button>
                 </td>
             `;
             userList.appendChild(row);
@@ -257,11 +256,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         const snap = await getDoc(doc(db, "users", user.uid));
-        const userData = snap.exists() ? snap.data() : {};
-        
-        const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
-
-        if (!isAdmin) {
+        if (!snap.exists() || snap.data().role !== "Admin") {
             window.location.href = "dashboard.html";
         } else {
             // Only call checkDailyReset and loadUsers once after admin check

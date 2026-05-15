@@ -11,10 +11,6 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- GLOBAL VARIABLES & STATE ---
-let memberUnsubscribe = null;
-let logUnsubscribe = null;
-
 const firebaseConfig = {
     apiKey: "AIzaSyCxwD04ZcxDjKkzCjIGXtGOJsewkAdNg50",
     authDomain: "seg-austria.firebaseapp.com",
@@ -47,6 +43,8 @@ if (isBeta) {
     const betaBadge = document.getElementById("betaBadge");
     if (betaBadge) betaBadge.style.display = "inline-block";
 }
+
+let memberUnsubscribe = null;
 
 // 📋 Liste laden
 function loadMembers() {
@@ -143,10 +141,7 @@ onAuthStateChanged(auth, async (user) => {
             loadLogs();
 
             // 4. Admin-Check für den Button
-            const isAdmin = userData.role === "Admin" || 
-                            userData.username?.trim().toLowerCase() === "websiteadministration";
-
-            if (isAdmin) {
+            if (userData.role === "Admin") {
                 const adminBtn = document.getElementById("adminPanelBtn");
                 if (adminBtn) {
                     adminBtn.style.display = "block";
