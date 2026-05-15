@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEG Austria - Dashboard</title>
     <link rel="stylesheet" href="style.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body class="dashboard-page">
 
@@ -21,16 +20,6 @@
 
     <div class="main-content">
         
-        <div class="container face-scan-container">
-            <h2 style="color: var(--primary-gold); font-size: 1.2em; margin-bottom: 15px;">👤 BIOMETRISCHER CHECK-IN</h2>
-            <div class="video-wrapper" style="position: relative; width: 100%; max-width: 400px; margin: 0 auto;">
-                <video id="video" width="100%" height="auto" autoplay playsinline muted style="border: 2px solid var(--primary-gold); border-radius: 10px; background: #000;"></video>
-                <div id="scan-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border: 1px solid rgba(197, 160, 89, 0.3); box-sizing: border-box;"></div>
-            </div>
-            <p id="faceStatus" style="margin-top: 10px; font-weight: bold; color: #aaa;">Initialisiere KI...</p>
-            <button id="regBtn" onclick="window.registerFace()" style="display: none; background: #444; margin-top: 10px;">NEUES GESICHT PROFILIEREN</button>
-        </div>
-
         <div class="dashboard-grid">
             <div class="container list-container">
                 <h2 style="color: var(--primary-gold);">ANWESENHEIT</h2>
