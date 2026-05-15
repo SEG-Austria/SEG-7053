@@ -26,66 +26,33 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // 🔐 Prüfen ob angemeldet
-onAuthStateChanged(auth, async (user) => {
-    const msgEl = document.getElementById("welcomeMsg");
-    
-    if (!user) {
-        console.log("Kein User eingeloggt, leite weiter...");
-        window.location.href = "index.html";
-        return;
-    }
-
-    try {
-        console.log("User eingeloggt:", user.uid);
-        const snap = await getDoc(doc(db, "users", user.uid));
-        
-        if (snap.exists()) {
-            const userData = snap.data();
-            msgEl.innerText = `Willkommen, ${userData.username || "Mitglied"}`;
-            
-            // Admin-Link anzeigen falls berechtigt
-            const adminBtn = document.getElementById("adminLink");
-            if (adminBtn && userData.role === "Admin") {
-                adminBtn.style.display = "block";
-            }
-            
-            loadMembers();
-        } else {
-            msgEl.innerText = "Fehler: User-Profil nicht in Datenbank gefunden.";
-            console.error("Kein Firestore-Dokument für UID:", user.uid);
-        }
-    } catch (error) {
-        msgEl.innerText = "Fehler beim Laden des Profils.";
-        console.error("Dashboard Error:", error);
-    }
-});
-
 // 📋 Liste laden
 async function loadMembers() {
     const list = document.getElementById("memberList");
     try {
-        const snap = await getDocs(collection(db, "users"));
-        list.innerHTML = "";
+        // Use onSnapshot for real-time updates
+        onSnapshot(collection(db, "users"), (snapshot) => {
+            list.innerHTML = "";
         
-        // In dashboard.js innerhalb von loadMembers():
-snap.forEach(d => {
-    const u = d.data();
-    if (u.banned) return;
+            snapshot.forEach(d => {
+                const u = d.data();
+                if (u.banned) return;
 
-    // Status-Farbe bestimmen
-    let statusColor = "#99cc00"; // Grün
-    if (u.status === "Abwesend (Entschuldigt)") statusColor = "#ffbb33"; // Gelb
-    if (u.status === "Abwesend (Unentschuldigt)") statusColor = "#ff4444"; // Rot
+                // Status-Farbe bestimmen
+                let statusColor = "var(--success)"; // Grün
+                if (u.status === "Abwesend (Entschuldigt)") statusColor = "var(--warning)"; // Gelb
+                if (u.status === "Abwesend (Unentschuldigt)") statusColor = "var(--danger)"; // Rot
 
-    const row = `
-        <tr>
-            <td>${u.username}</td>
-            <td><span class="role-badge ${u.role ? u.role.split(' ')[0] : ''}">${u.role}</span></td>
-            <td><span style="color: ${statusColor}; font-weight: bold;">● ${u.status || "Anwesend"}</span></td>
-        </tr>
-    `;
-    list.innerHTML += row;
-});
+                const row = `
+                    <tr>
+                        <td>${u.username}</td>
+                        <td><span class="role-badge ${u.role ? u.role.split(' ')[0] : ''}">${u.role}</span></td>
+                        <td><span class="status-dot" style="background-color: ${statusColor};"></span> ${u.status || "Anwesend"}</td>
+                    </tr>
+                `;
+                list.innerHTML += row;
+            });
+        });
     } catch (e) {
         console.error("Fehler beim Laden der Mitglieder:", e);
         list.innerHTML = "<tr><td colspan='2'>Fehler beim Laden der Liste.</td></tr>";
@@ -98,13 +65,13 @@ function loadLogs() {
     if (!logBox) return;
 
     const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
             const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
             logBox.innerHTML += `
-                <div class="log-item" style="border-bottom: 1px solid #333; padding: 5px 0;">
+                <div class="log-item">
                     <span style="color: #888; font-size: 0.75em;">[${zeit}]</span><br>
                     <strong style="color: var(--primary-gold);">${l.targetUser}</strong> 
                     <span style="color: #eee;">→ ${l.newStatus}</span>
@@ -115,7 +82,7 @@ function loadLogs() {
 }
 
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
-// --- 4. AUTH-CHECK & INITIALISIERUNG ---
+// Consolidated Auth Check & Initialization
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
@@ -124,6 +91,10 @@ onAuthStateChanged(auth, async (user) => {
             
             if (!userDoc.exists()) {
                 console.error("Nutzerdaten nicht gefunden!");
+                // If user exists in auth but not in Firestore, log them out
+                alert("Dein Profil konnte nicht geladen werden. Bitte melde dich erneut an.");
+                await signOut(auth);
+                window.location.href = "index.html";
                 return;
             }
 
@@ -136,6 +107,10 @@ onAuthStateChanged(auth, async (user) => {
                 window.location.href = "index.html";
                 return; 
             }
+
+            // Display welcome message
+            const msgEl = document.getElementById("welcomeMsg");
+            if (msgEl) msgEl.innerText = `Willkommen, ${userData.username || "Mitglied"}!`;
 
             // 3. Wenn nicht gesperrt -> Dashboard laden
             loadMembers();
@@ -158,6 +133,6 @@ onAuthStateChanged(auth, async (user) => {
             window.location.href = "index.html";
         }
     }
-}); // <-- Diese Klammern fehlten wahrscheinlich oder waren falsch gesetzt
+});
 
 window.logout = () => signOut(auth).then(() => window.location.href = "index.html");

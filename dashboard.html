@@ -4,25 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEG Austria - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dashboard-page">
 
     <div class="header">
-        <img src="logo.png" alt="SEG Logo" class="logo">
-        <h1 style="color: var(--primary-gold); margin: 5px 0;">SEG - Mitglieder</h1>
-        <button id="adminPanelBtn" 
-        onclick="window.location.href='admin.html'" 
-        style="display: none; background: #c5a059; color: black; font-weight: bold; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
-    🛠 ADMIN PANEL
-</button>
+        <img src="logo.png" alt="SEG Logo" class="logo mb-md">
+        <h1 class="text-gold" style="margin: 5px 0;">SEG - Dashboard</h1>
+        <p id="welcomeMsg" class="text-muted" style="margin-top: 5px; font-size: 1.1em;"></p>
+        <button id="adminPanelBtn" onclick="window.location.href='admin.html'" 
+                class="mt-lg" style="display: none; background: var(--secondary-gold); color: var(--dark-bg); font-weight: bold; border: none; padding: 10px 20px; border-radius: var(--border-radius-sm); cursor: pointer;">
+            🛠 ADMIN PANEL
+        </button>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: var(--spacing-xl) 0;">
         
         <div class="dashboard-grid">
-            <div class="container list-container">
-                <h2 style="color: var(--primary-gold);">ANWESENHEIT</h2>
+            <div class="container list-container" style="padding: var(--spacing-lg);">
+                <h2 class="text-gold" style="margin-top: 0; margin-bottom: var(--spacing-md);">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">group</span>
+                    ANWESENHEIT
+                </h2>
                 <table>
                     <thead>
                         <tr>
@@ -37,14 +44,18 @@
                 </table>
             </div>
 
-            <div class="container log-container">
-                <h2 style="color: var(--primary-gold);">AKTIVITÄT</h2>
-                <div id="logList" style="max-height: 300px; overflow-y: auto;">
-                    </div>
+            <div class="container log-container" style="padding: var(--spacing-lg);">
+                <h2 class="text-gold" style="margin-top: 0; margin-bottom: var(--spacing-md);">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">history</span>
+                    AKTIVITÄT
+                </h2>
+                <div id="logList" style="max-height: 350px; overflow-y: auto;">
+                    <!-- Log items will be loaded here -->
+                </div>
             </div>
         </div>
 
-        <button onclick="window.logout()" style="margin-top: 30px; background: transparent; border: 1px solid var(--danger); color: var(--danger);">ABMELDEN</button>
+        <button onclick="window.logout()" class="mt-lg" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); max-width: 300px;">ABMELDEN</button>
     </div>
 
     <script type="module" src="app.js"></script> <script type="module" src="dashboard.js"></script>

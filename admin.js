@@ -63,13 +63,13 @@ async function checkDailyReset() {
             console.log("Neuer Tag erkannt! Setze alle Status auf 'Keine Schicht'...");
             
             const usersSnap = await getDocs(collection(db, "users"));
-            
-            // Alle User durchgehen und Status ändern
-            const updatePromises = usersSnap.docs.map(uDoc => 
-                updateDoc(doc(db, "users", uDoc.id), { status: "Keine Schicht" })
-            );
-            
-            await Promise.all(updatePromises);
+            const batch = db.batch(); // Use batch for efficiency
+
+            usersSnap.forEach(uDoc => {
+                batch.update(uDoc.ref, { status: "Keine Schicht" });
+            });
+
+            await batch.commit(); // Commit all updates at once
 
             // Das Reset-Datum in der Datenbank aktualisieren
             await setDoc(resetRef, { date: today });
@@ -210,23 +210,22 @@ window.logout = async () => {
 // --- AUTH CHECK & START ---
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "index.html";
-        return;
-    }
-    const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists() && snap.data().role === "Admin") {
-            await checkDailyReset(); // <--- Hier einfügen
-            loadUsers();
-        }
     try {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
         const snap = await getDoc(doc(db, "users", user.uid));
         if (!snap.exists() || snap.data().role !== "Admin") {
             window.location.href = "dashboard.html";
         } else {
+            // Only call checkDailyReset and loadUsers once after admin check
+            await checkDailyReset();
             loadUsers();
         }
     } catch (e) {
         console.error("Auth-Error:", e);
+        window.location.href = "index.html"; // Redirect on error
     }
 });
