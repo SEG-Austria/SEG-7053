@@ -166,10 +166,11 @@ tbody tr:last-child td {
 
 /* Specific role badge colors */
 .Anfänger { background-color: rgba(153, 204, 0, 0.2); color: #99cc00; border-color: #99cc00; }
-.Arbeiter { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; border-color: #4caf50; } /* Grouping different 'Arbeiter' */
+.Schlechter, .Mittelmäßiger { background-color: rgba(165, 42, 42, 0.2); color: #a52a2a; border-color: #a52a2a; }
+.Guter, .Bester, .Arbeiter { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; border-color: #4caf50; }
 .General { background-color: rgba(255, 187, 51, 0.2); color: #ffbb33; border-color: #ffbb33; }
-.Anführer { background-color: rgba(255, 215, 0, 0.2); color: #ffd700; border-color: #ffd700; }
-.Krank, .Vorübergehend { background-color: rgba(136, 136, 136, 0.2); color: #888; border-color: #888; }
+.Co-Anführer, .Anführer { background-color: rgba(255, 215, 0, 0.2); color: #ffd700; border-color: #ffd700; }
+.Krank, .Vorübergehend, .Keine { background-color: rgba(136, 136, 136, 0.2); color: #888; border-color: #888; }
 .Admin { background-color: rgba(255, 70, 70, 0.2); color: var(--danger); border-color: var(--danger); }
 
 /* Status indicator dot */
@@ -198,6 +199,17 @@ tbody tr:last-child td {
   margin-bottom: 20px;
   text-align: left;
   animation: fadeIn 0.8s ease;
+}
+
+.beta-badge {
+  background-color: var(--danger); /* Red for clear distinction */
+  color: white;
+  padding: 4px 10px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-left: var(--spacing-sm);
+  display: none; /* Hidden by default, shown by JS */
 }
 
 .log-item {
