@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, 
@@ -21,37 +21,19 @@ const firebaseConfig = {
 };
 
 // Initialisierung
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- BETA PASSWORD GATE ---
-const isBeta = window.location.pathname.includes("/beta");
-if (isBeta && localStorage.getItem("seg_beta_authorized") !== "true") {
-    const betaCode = "beta2026"; 
-    const entry = prompt("Bitte Beta-Zugangsschlüssel eingeben:");
-    if (entry === betaCode) {
-        localStorage.setItem("seg_beta_authorized", "true");
-    } else {
-        alert("Zugriff verweigert.");
-        window.location.href = window.location.origin + window.location.pathname.split("/beta")[0] + "/";
-    }
-}
-
-// Zeige Beta-Badge, wenn auf Beta-Pfad
-if (isBeta) {
-    const betaBadge = document.getElementById("betaBadge");
-    if (betaBadge) betaBadge.style.display = "inline-block";
-}
-
+// 🔐 Prüfen ob angemeldet
 let memberUnsubscribe = null;
+let logUnsubscribe = null;
 
 // 📋 Liste laden
 function loadMembers() {
     const list = document.getElementById("memberList");
     try {
         if (memberUnsubscribe) memberUnsubscribe();
-        // Use onSnapshot for real-time updates
         memberUnsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
             list.innerHTML = "";
         
@@ -59,10 +41,13 @@ function loadMembers() {
                 const u = d.data();
                 if (u.banned) return;
 
+                const statusNormalized = (u.status || "Anwesend").toLowerCase();
+
                 // Status-Farbe bestimmen
                 let statusColor = "var(--success)"; // Grün
-                if (u.status === "Abwesend (Entschuldigt)") statusColor = "var(--warning)"; // Gelb
-                if (u.status === "Abwesend (Unentschuldigt)") statusColor = "var(--danger)"; // Rot
+                if (statusNormalized.includes("entschuldigt") && !statusNormalized.includes("unentschuldigt")) statusColor = "var(--warning)"; 
+                if (statusNormalized.includes("unentschuldigt")) statusColor = "var(--danger)";
+                if (statusNormalized === "keine schicht") statusColor = "#888"; // Grey for no shift
 
                 const row = `
                     <tr>
@@ -85,8 +70,9 @@ function loadLogs() {
     const logBox = document.getElementById("logList");
     if (!logBox) return;
 
+    if (logUnsubscribe) logUnsubscribe();
     const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-    onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
+    logUnsubscribe = onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
@@ -156,4 +142,8 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+window.logout = () => signOut(auth).then(() => {
+    if (memberUnsubscribe) memberUnsubscribe();
+    if (logUnsubscribe) logUnsubscribe();
+    window.location.href = "index.html";
+});
