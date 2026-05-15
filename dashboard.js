@@ -26,12 +26,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // 🔐 Prüfen ob angemeldet
+let memberUnsubscribe = null;
+let logUnsubscribe = null;
+
 // 📋 Liste laden
-async function loadMembers() {
+function loadMembers() {
     const list = document.getElementById("memberList");
     try {
-        // Use onSnapshot for real-time updates
-        onSnapshot(collection(db, "users"), (snapshot) => {
+        if (memberUnsubscribe) memberUnsubscribe();
+        memberUnsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
             list.innerHTML = "";
         
             snapshot.forEach(d => {
@@ -67,8 +70,9 @@ function loadLogs() {
     const logBox = document.getElementById("logList");
     if (!logBox) return;
 
+    if (logUnsubscribe) logUnsubscribe();
     const q = query(collection(db, "logs"), orderBy("changedAt", "desc"), limit(10));
-    onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
+    logUnsubscribe = onSnapshot(q, (snapshot) => { // Keep onSnapshot for logs
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
@@ -138,4 +142,8 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+window.logout = () => signOut(auth).then(() => {
+    if (memberUnsubscribe) memberUnsubscribe();
+    if (logUnsubscribe) logUnsubscribe();
+    window.location.href = "index.html";
+});
