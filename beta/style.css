@@ -1,0 +1,356 @@
+:root {
+  --primary-gold: #FFD700; /* Brighter, more vibrant gold */
+  --secondary-gold: #c5a059; /* Original gold for subtle accents */
+  --dark-bg: #121212; /* Deeper, modern dark background */
+  --panel-bg: #1e1e1e; /* Slightly lighter than dark-bg for panels */
+  --card-bg: #282828; /* For distinct card elements */
+  --text-light: #e0e0e0; /* General text color */
+  --text-muted: #a0a0a0; /* For secondary text, timestamps */
+  --danger: #ff6b6b; /* Brighter, more impactful danger color */
+  --success: #4CAF50; /* Standard success green */
+  --warning: #FFC107; /* Standard warning yellow */
+  --info: #2196F3; /* Standard info blue */
+  --border-color: #333; /* Subtle border color */
+  --shadow-light: rgba(0, 0, 0, 0.3);
+  --shadow-medium: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
+  --font-family-primary: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern sans-serif */
+  --font-family-secondary: 'Roboto Mono', 'Courier New', Courier, monospace; /* For logs/code */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+
+/* --- BASIS STYLES --- */
+html, body {
+  background-color: var(--dark-bg);
+  color: var(--text-light);
+  font-family: var(--font-family-primary);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Ensure body takes full viewport height */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* --- HEADER & LOGO --- */
+.header {
+  width: 100%;
+  background: linear-gradient(to bottom, #282828, #1e1e1e); /* More subtle gradient */
+  padding: var(--spacing-lg) var(--spacing-md);
+  text-align: center;
+  border-bottom: 2px solid var(--primary-gold);
+  box-sizing: border-box;
+  box-shadow: 0 2px 10px var(--shadow-medium); /* Add subtle shadow */
+}
+
+.logo {
+  max-width: 150px;
+  height: auto;
+  filter: drop-shadow(0 0 8px var(--primary-gold)); /* Enhanced glow */
+}
+
+/* --- CONTAINER --- */
+.container {
+  background: var(--card-bg); /* Use card background */
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg); /* More rounded corners */
+  box-shadow: 0 8px 20px var(--shadow-medium); /* Deeper shadow */
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 90%;
+  max-width: 600px; /* Erhöht für Tabellen-Ansicht */
+  border: 1px solid var(--border-color); /* Subtle border */
+  box-sizing: border-box;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+}
+
+.container:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px var(--shadow-strong);
+}
+
+/* --- FORMULAR ELEMENTE --- */
+input, select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: var(--spacing-xs) 0;
+  background: #1a1a1a; /* Darker input background */
+  border: 1px solid #444;
+  color: white;
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+button {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(45deg, var(--primary-gold), var(--secondary-gold)); /* Gradient button */
+  border: none;
+  color: var(--dark-bg); /* Dark text on gold */
+  font-weight: 600; /* Slightly bolder */
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 4px 10px var(--shadow-light); /* Button shadow */
+  transition: all 0.3s ease; /* Smooth transitions */
+}
+
+button:hover {
+  background: linear-gradient(45deg, var(--secondary-gold), var(--primary-gold)); /* Reverse gradient on hover */
+  transform: translateY(-3px); /* More pronounced lift */
+  box-shadow: 0 6px 15px var(--shadow-medium);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px var(--shadow-light);
+}
+
+/* --- TABELLEN --- */
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: separate; /* For rounded corners */
+  border-spacing: 0;
+  border-radius: var(--border-radius-md); /* Rounded table corners */
+  overflow: hidden; /* Ensures rounded corners are visible */
+}
+
+th {
+  background-color: #222; /* Darker header background */
+  color: var(--primary-gold);
+  font-weight: 600;
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+}
+
+td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid #333; /* Lighter border for rows */
+  text-align: left;
+}
+
+tr:nth-child(even) {
+  background-color: #222; /* Zebra striping */
+}
+
+tr:hover {
+  background-color: #333; /* Highlight row on hover */
+}
+
+/* Remove bottom border from last row */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- ROLLEN BADGES --- */
+.role-badge {
+  padding: 3px 10px;
+  border-radius: 15px; /* Pill-shaped badges */
+  font-size: 0.75em;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 5px;
+  border: 1px solid transparent; /* Default border */
+}
+
+/* Specific role badge colors */
+.Anfänger { background-color: rgba(153, 204, 0, 0.2); color: #99cc00; border-color: #99cc00; }
+.Arbeiter { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; border-color: #4caf50; } /* Grouping different 'Arbeiter' */
+.General { background-color: rgba(255, 187, 51, 0.2); color: #ffbb33; border-color: #ffbb33; }
+.Anführer { background-color: rgba(255, 215, 0, 0.2); color: #ffd700; border-color: #ffd700; }
+.Krank, .Vorübergehend { background-color: rgba(136, 136, 136, 0.2); color: #888; border-color: #888; }
+.Admin { background-color: rgba(255, 70, 70, 0.2); color: var(--danger); border-color: var(--danger); }
+
+/* Status indicator dot */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* --- LOG BOX --- */
+.log-container {
+  background: #1a1a1a; /* Darker background for logs */
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid var(--primary-gold); /* Accent border */
+  font-family: var(--font-family-secondary); /* Monospace font for logs */
+  font-size: 0.9em;
+}
+
+.news-box {
+  border-left: 4px solid var(--primary-gold);
+  background: rgba(255, 215, 0, 0.05);
+  margin-bottom: 20px;
+  text-align: left;
+  animation: fadeIn 0.8s ease;
+}
+
+.log-item {
+  border-bottom: 1px dashed #333; /* Dashed separator */
+  padding: var(--spacing-xs) 0;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-item span {
+  color: var(--text-muted);
+  font-size: 0.75em;
+}
+
+.log-item strong {
+  color: var(--primary-gold);
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns on desktop */
+  gap: var(--spacing-xl); /* Spacing between grid items */
+  width: 90%;
+  max-width: 1200px; /* Max width for the grid */
+}
+
+/* --- MOBILE OPTIMIERUNG (HANDY) --- */
+@media screen and (max-width: 600px) {
+  .logo { max-width: 100px; }
+  
+  .container {
+    padding: 15px;
+    margin-top: 15px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: var(--spacing-lg);
+    width: 95%;
+  }
+
+  /* Tabelle in Karten umwandeln */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    background: rgba(255,255,255,0.05);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+  }
+  
+  td {
+    border: none;
+    position: relative;
+    padding-left: 45% !important;
+    text-align: right;
+    border-bottom: 1px solid #333;
+    min-height: 40px;
+    display: flex;
+    align-items: baseline; /* Align text better */
+    justify-content: flex-end;
+  }
+
+  td:last-child { border-bottom: 0; }
+
+  td:before {
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: bold;
+    color: var(--text-muted); /* Muted label color */
+    font-size: 0.9em;
+  }
+
+  /* Spalten-Beschriftungen (Klassen müssen in HTML body sein) */
+  .dashboard-page td:nth-of-type(1):before { content: "Name"; }
+  .dashboard-page td:nth-of-type(2):before { content: "Rang"; }
+  .dashboard-page td:nth-of-type(3):before { content: "Status"; }
+  
+  .admin-page td:nth-of-type(1):before { content: "User"; }
+  .admin-page td:nth-of-type(2):before { content: "Rolle"; }
+  .admin-page td:nth-of-type(3):before { content: "Schicht"; }
+  .admin-page td:nth-of-type(4):before { content: "Status"; }
+  .admin-page td:nth-of-type(5):before { content: "Aktion"; }
+}
+/* --- LOGIN PAGE SPECIFIC STYLES --- */
+.login-page {
+    justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #2d2d2d 0%, #1a1a1a 100%);
+}
+
+.login-box {
+    border: 2px solid var(--primary-gold); /* Stronger gold border */
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); /* Enhanced glow */
+    animation: slideUp 0.6s ease-out;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Fokus-Effekt für Inputs */
+input:focus {
+    outline: none; /* Remove default outline */
+    border-color: var(--primary-gold); /* Gold border on focus */
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2); /* Subtle gold ring */
+    background-color: #111; /* Slightly darker background on focus */
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Login Anpassung */
+@media screen and (max-width: 600px) {
+    .login-box {
+        width: 85%;
+        padding: 20px;
+    }
+}
+
+/* --- UTILITY CLASSES --- */
+.text-gold { color: var(--primary-gold); }
+.text-muted { color: var(--text-muted); }
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.font-mono { font-family: var(--font-family-secondary); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
