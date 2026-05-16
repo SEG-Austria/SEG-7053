@@ -8,8 +8,9 @@ We host and develop the website and database for mangement.
 You can download a .zip of this repo and change stuff or just fork it.
 Thanks for reading!
 ## Branches
-gh-pages: everything that's currently being hosted right now. Clone this branch!
-main: The production branch. The main index.html is in here.
-beta-testing: The newest features! hosted seperately under /beta and requires a access key
-legacy: Old testing stuff, cloning doesnt matter here because it will NOT work
-patches: pull request branches, ignore and do not clone
+<p>gh-pages: everything that's currently being hosted right now. Clone this branch! <br>
+main: The production branch. The main index.html is in here. <br>
+beta-testing: The newest features! hosted seperately under /beta and requires a access key <br>
+legacy: Old testing stuff, cloning doesnt matter here because it will NOT work <br>
+patches: pull request branches, ignore and do not clone <br>
+</p>
