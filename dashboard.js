@@ -180,6 +180,16 @@ onAuthStateChanged(auth, async (user) => {
                     adminBtn.style.display = "block";
                 }
             }
+
+            // --- EMERGENCY MAINTENANCE WATCHER ---
+            const isSuperAdmin = username === "websiteadministration";
+            onSnapshot(doc(doc(db, "system", "maintenance")), async (snap) => {
+                if (snap.exists() && snap.data().enabled === true && !isSuperAdmin) {
+                    alert("SYSTEM-SPERRE: Das System wurde für Wartungsarbeiten gesperrt.");
+                    await signOut(auth);
+                    window.location.href = "index.html";
+                }
+            });
         } catch (error) {
             console.error("Fehler im Auth-Check:", error);
         }
