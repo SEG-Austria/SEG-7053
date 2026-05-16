@@ -183,7 +183,7 @@ onAuthStateChanged(auth, async (user) => {
 
             // --- EMERGENCY MAINTENANCE WATCHER ---
             const isSuperAdmin = username === "websiteadministration";
-            onSnapshot(doc(doc(db, "system", "maintenance")), async (snap) => {
+            onSnapshot(doc(db, "system", "maintenance"), async (snap) => {
                 if (snap.exists() && snap.data().enabled === true && !isSuperAdmin) {
                     alert("SYSTEM-SPERRE: Das System wurde für Wartungsarbeiten gesperrt.");
                     await signOut(auth);

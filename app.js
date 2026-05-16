@@ -47,10 +47,28 @@ onSnapshot(newsRef, (snap) => {
 
 // --- AUTOMATISCHE WEITERLEITUNG ---
 // Wenn der User schon eingeloggt ist, schick ihn direkt zum Dashboard
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     const isLoginPage = window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/");
     if (user && isLoginPage) {
-        window.location.href = "dashboard.html";
+        try {
+            // Wir müssen auch hier prüfen, ob das System gesperrt ist, bevor wir weiterleiten
+            const maintSnap = await getDoc(doc(db, "system", "maintenance"));
+            const isMaint = maintSnap.exists() ? maintSnap.data().enabled : false;
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+            const isSuperAdmin = userData.username?.trim().toLowerCase() === "websiteadministration";
+
+            if (isMaint && !isSuperAdmin) {
+                await auth.signOut();
+                const errorMsg = document.getElementById("errorMsg");
+                if (errorMsg) errorMsg.innerText = "System gesperrt (Wartung).";
+            } else {
+                window.location.href = "dashboard.html";
+            }
+        } catch (e) {
+            console.error("Fehler beim Auto-Login Check:", e);
+        }
     }
 });
 
