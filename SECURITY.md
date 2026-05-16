@@ -2,14 +2,15 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+These are the following branches:
 
 | Version     | Supported          |
 | ----------- | ------------------ |
 | Production  | :white_check_mark: |
 | Beta        | :white_check_mark: |
 | Legacy      | :x:                |
+
+The branches without a check mark cannot be accessed on the web because these pose a massive security risk (outdated software + missing patches)
 
 ## Reporting a Vulnerability
 
