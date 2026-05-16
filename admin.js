@@ -161,6 +161,7 @@ async function loadCurrentEmergency() {
     if (snap.exists()) emergencyInput.value = snap.data().text || "";
 }
 
+// --- EXPOSE FUNCTIONS TO WINDOW EARLY ---
 window.updateEmergency = async () => {
     const emergencyText = document.getElementById("emergencyInput").value;
     try {
@@ -182,6 +183,8 @@ window.updateNews = async () => {
         alert("News erfolgreich aktualisiert!");
     } catch (e) { alert("Fehler: " + e.message); }
 };
+
+console.log("Admin module: Global functions defined.");
 
 // --- WINDOW FUNKTIONEN (GLOBALE EVENTS) ---
 
@@ -276,8 +279,9 @@ onAuthStateChanged(auth, async (user) => {
 
         const snap = await getDoc(doc(db, "users", user.uid));
         const userData = snap.exists() ? snap.data() : {};
-        
-        const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
+
+        const usernameNormalized = (userData.username || "").trim().toLowerCase();
+        const isAdmin = userData.role === "Admin" || usernameNormalized === "websiteadministration";
 
         if (!isAdmin) {
             window.location.href = "dashboard.html";
