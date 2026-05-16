@@ -26,6 +26,18 @@
     <div class="main-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: var(--spacing-xl) 0;">
         
         <div class="dashboard-grid">
+            <!-- Emergency Box -->
+            <div id="emergencyAlert" class="container emergency-box" style="display: none; grid-column: 1 / -1; max-width: 100%; width: 100%; margin-top: 0;">
+                <h3 class="text-danger" style="margin-top: 0; font-size: 1em; letter-spacing: 1.5px; font-weight: 800;">🚨 NOTFALL-DURCHSAGE</h3>
+                <p id="emergencyContent" class="text-light" style="margin: 0; font-size: 1.2em; line-height: 1.5; font-weight: 700;"></p>
+            </div>
+
+            <!-- News / Alert Box -->
+            <div id="dashboardNews" class="container news-box" style="display: none; grid-column: 1 / -1; max-width: 100%; width: 100%; margin-top: 0;">
+                <h3 class="text-gold" style="margin-top: 0; font-size: 0.9em; letter-spacing: 1px;">📢 AKTUELLE INFORMATION</h3>
+                <p id="newsContent" class="text-light" style="margin: 0; font-size: 1.1em; line-height: 1.5; font-weight: 500;"></p>
+            </div>
+
             <div class="container list-container" style="padding: var(--spacing-lg);">
                 <h2 class="text-gold" style="margin-top: 0; margin-bottom: var(--spacing-md);">
                     <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">group</span>

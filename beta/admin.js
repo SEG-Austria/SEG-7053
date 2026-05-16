@@ -154,6 +154,24 @@ async function loadCurrentNews() {
     if (snap.exists()) newsInput.value = snap.data().text || "";
 }
 
+async function loadCurrentEmergency() {
+    const emergencyInput = document.getElementById("emergencyInput");
+    if (!emergencyInput) return;
+    const snap = await getDoc(doc(db, "system", "emergency"));
+    if (snap.exists()) emergencyInput.value = snap.data().text || "";
+}
+
+window.updateEmergency = async () => {
+    const emergencyText = document.getElementById("emergencyInput").value;
+    try {
+        await setDoc(doc(db, "system", "emergency"), { 
+            text: emergencyText, 
+            updatedAt: serverTimestamp() 
+        });
+        alert("Notfall-Status wurde aktualisiert!");
+    } catch (e) { alert("Fehler: " + e.message); }
+};
+
 window.updateNews = async () => {
     const newsText = document.getElementById("newsInput").value;
     try {
@@ -268,6 +286,7 @@ onAuthStateChanged(auth, async (user) => {
             await checkDailyReset();
             loadUsers();
             loadCurrentNews();
+            loadCurrentEmergency();
         }
     } catch (e) {
         console.error("Auth-Error:", e);

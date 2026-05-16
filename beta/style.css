@@ -201,6 +201,20 @@ tbody tr:last-child td {
   animation: fadeIn 0.8s ease;
 }
 
+.emergency-box {
+  border: 2px solid var(--danger);
+  background: rgba(255, 107, 107, 0.15);
+  margin-bottom: 20px;
+  text-align: left;
+  animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseRed {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+  50% { transform: scale(1.005); box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+}
+
 .beta-badge {
   background-color: var(--danger); /* Red for clear distinction */
   color: white;

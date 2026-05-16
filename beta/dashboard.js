@@ -107,6 +107,32 @@ function loadLogs() {
     });
 }
 
+// --- 3. NEWS LADEN ---
+function loadDashboardNews() {
+    const newsBox = document.getElementById("dashboardNews");
+    const newsContent = document.getElementById("newsContent");
+    if (!newsBox || !newsContent) return;
+
+    onSnapshot(doc(db, "system", "news"), (snap) => {
+        const text = snap.exists() ? snap.data().text : "";
+        newsContent.innerText = text;
+        newsBox.style.display = text.trim() ? "block" : "none";
+    });
+}
+
+// --- 4. NOTFALL-DURCHSAGE LADEN ---
+function loadEmergencyAlert() {
+    const alertBox = document.getElementById("emergencyAlert");
+    const alertContent = document.getElementById("emergencyContent");
+    if (!alertBox || !alertContent) return;
+
+    onSnapshot(doc(db, "system", "emergency"), (snap) => {
+        const text = snap.exists() ? snap.data().text : "";
+        alertContent.innerText = text;
+        alertBox.style.display = text.trim() ? "block" : "none";
+    });
+}
+
 // --- 4. AUTH-CHECK & ADMIN-BUTTON ---
 // Consolidated Auth Check & Initialization
 onAuthStateChanged(auth, async (user) => {
@@ -141,6 +167,8 @@ onAuthStateChanged(auth, async (user) => {
             // 3. Wenn nicht gesperrt -> Dashboard laden
             loadMembers();
             loadLogs();
+            loadDashboardNews();
+            loadEmergencyAlert();
 
             // 4. Admin-Check für den Button
             const username = (userData.username || "").trim().toLowerCase();
