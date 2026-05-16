@@ -51,19 +51,22 @@ onAuthStateChanged(auth, async (user) => {
     const isLoginPage = window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/");
     if (user && isLoginPage) {
         try {
-            // Wir müssen auch hier prüfen, ob das System gesperrt ist, bevor wir weiterleiten
+            // FETCH LOCKOUT STATUS FIRST
             const maintSnap = await getDoc(doc(db, "system", "maintenance"));
             const isMaint = maintSnap.exists() ? maintSnap.data().enabled : false;
 
+            // FETCH USER ROLE SECOND
             const userDoc = await getDoc(doc(db, "users", user.uid));
             const userData = userDoc.exists() ? userDoc.data() : {};
             const isSuperAdmin = userData.username?.trim().toLowerCase() === "websiteadministration";
 
+            // PREVENT REDIRECT IF LOCKED
             if (isMaint && !isSuperAdmin) {
                 await auth.signOut();
                 const errorMsg = document.getElementById("errorMsg");
                 if (errorMsg) errorMsg.innerText = "System gesperrt (Wartung).";
             } else {
+                // Only redirect if NOT in maintenance or if user IS SuperAdmin
                 window.location.href = "dashboard.html";
             }
         } catch (e) {
@@ -106,7 +109,7 @@ window.login = async () => {
     const isSuperAdmin = userData.username?.trim().toLowerCase() === "websiteadministration";
     const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
 
-    // --- EMERGENCY DISABLE CHECK ---
+    // --- EMERGENCY DISABLE CHECK (2 segments: system/maintenance) ---
     const maintSnap = await getDoc(doc(db, "system", "maintenance"));
     const isMaint = maintSnap.exists() ? maintSnap.data().enabled : false;
 
