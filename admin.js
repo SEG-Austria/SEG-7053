@@ -161,6 +161,26 @@ async function loadCurrentEmergency() {
     if (snap.exists()) emergencyInput.value = snap.data().text || "";
 }
 
+let isMaintenanceActive = false;
+async function loadMaintenanceStatus() {
+    const btn = document.getElementById("maintBtn");
+    if (!btn) return;
+    const snap = await getDoc(doc(db, "system", "maintenance"));
+    isMaintenanceActive = snap.exists() ? snap.data().enabled : false;
+    btn.innerText = isMaintenanceActive ? "SPERRE DEAKTIVIEREN" : "SYSTEM JETZT SPERREN";
+    btn.style.background = isMaintenanceActive ? "var(--success)" : "#ffae00";
+}
+
+window.toggleMaintenance = async () => {
+    try {
+        const newState = !isMaintenanceActive;
+        await setDoc(doc(db, "system", "maintenance"), { enabled: newState });
+        isMaintenanceActive = newState;
+        await loadMaintenanceStatus();
+        alert(newState ? "System für normale User gesperrt!" : "System wieder freigegeben.");
+    } catch (e) { alert("Fehler: " + e.message); }
+};
+
 // --- EXPOSE FUNCTIONS TO WINDOW EARLY ---
 window.updateEmergency = async () => {
     const emergencyText = document.getElementById("emergencyInput").value;
@@ -294,6 +314,7 @@ onAuthStateChanged(auth, async (user) => {
             loadUsers();
             loadCurrentNews();
             loadCurrentEmergency();
+            loadMaintenanceStatus();
         }
     } catch (e) {
         if (e.code === 'permission-denied') {

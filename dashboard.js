@@ -170,9 +170,10 @@ onAuthStateChanged(auth, async (user) => {
             loadDashboardNews();
             loadEmergencyAlert();
 
-            // 4. Admin-Check für den Button
+            // --- ADMIN & LOCKOUT LOGIC ---
             const username = (userData.username || "").trim().toLowerCase();
             const isAdmin = userData.role === "Admin" || username === "websiteadministration";
+            const isSuperAdmin = username === "websiteadministration";
 
             if (isAdmin) {
                 const adminBtn = document.getElementById("adminPanelBtn");
@@ -180,6 +181,18 @@ onAuthStateChanged(auth, async (user) => {
                     adminBtn.style.display = "block";
                 }
             }
+
+            // REAL-TIME LOCKOUT WATCHER
+            onSnapshot(doc(db, "system", "maintenance"), async (snap) => {
+                const maintActive = snap.exists() ? snap.data().enabled : false;
+                if (maintActive && !isSuperAdmin) {
+                    // Immediate expulsion for non-superadmins
+                    alert("ACHTUNG: Systemwartung aktiv. Du kannst dich nicht anmelden. Kontaktiere einen Administrator.");
+                    signOut(auth).then(() => {
+                        window.location.href = "index.html";
+                    });
+                }
+            });
         } catch (error) {
             console.error("Fehler im Auth-Check:", error);
         }
