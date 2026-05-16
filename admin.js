@@ -53,7 +53,7 @@ if (isBeta) {
 }
 
 // Zweit-App für User-Erstellung (verhindert Logout des Admins)
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
 // Konfigurationen
@@ -154,6 +154,28 @@ async function loadCurrentNews() {
     if (snap.exists()) newsInput.value = snap.data().text || "";
 }
 
+async function loadCurrentEmergency() {
+    const emergencyInput = document.getElementById("emergencyInput");
+    if (!emergencyInput) return;
+    const snap = await getDoc(doc(db, "system", "emergency"));
+    if (snap.exists()) emergencyInput.value = snap.data().text || "";
+}
+
+// --- EXPOSE FUNCTIONS TO WINDOW EARLY ---
+window.updateEmergency = async () => {
+    const emergencyText = document.getElementById("emergencyInput").value;
+    try {
+        await setDoc(doc(db, "system", "emergency"), { 
+            text: emergencyText, 
+            updatedAt: serverTimestamp() 
+        });
+        alert("Notfall-Status wurde aktualisiert!");
+    } catch (e) { 
+        console.error("Permission Error:", e);
+        alert("Zugriff verweigert! Prüfe deine Firestore Security Rules."); 
+    }
+};
+
 window.updateNews = async () => {
     const newsText = document.getElementById("newsInput").value;
     try {
@@ -164,6 +186,8 @@ window.updateNews = async () => {
         alert("News erfolgreich aktualisiert!");
     } catch (e) { alert("Fehler: " + e.message); }
 };
+
+console.log("Admin module: Global functions defined.");
 
 // --- WINDOW FUNKTIONEN (GLOBALE EVENTS) ---
 
@@ -258,8 +282,9 @@ onAuthStateChanged(auth, async (user) => {
 
         const snap = await getDoc(doc(db, "users", user.uid));
         const userData = snap.exists() ? snap.data() : {};
-        
-        const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
+
+        const usernameNormalized = (userData.username || "").trim().toLowerCase();
+        const isAdmin = userData.role === "Admin" || usernameNormalized === "websiteadministration";
 
         if (!isAdmin) {
             window.location.href = "dashboard.html";
@@ -268,9 +293,15 @@ onAuthStateChanged(auth, async (user) => {
             await checkDailyReset();
             loadUsers();
             loadCurrentNews();
+            loadCurrentEmergency();
         }
     } catch (e) {
-        console.error("Auth-Error:", e);
-        window.location.href = "index.html"; // Redirect on error
+        if (e.code === 'permission-denied') {
+            console.error("Firestore Permission Denied. Check your Rules tab in Firebase Console.");
+            alert("Sicherheitsfehler: Du hast keine Berechtigung für diese Daten.");
+        } else {
+            console.error("Auth-Error:", e);
+            window.location.href = "index.html";
+        }
     }
 });
