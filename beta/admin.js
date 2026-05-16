@@ -53,7 +53,7 @@ if (isBeta) {
 }
 
 // Zweit-App für User-Erstellung (verhindert Logout des Admins)
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryApp = getApps().find(a => a.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
 const secondaryAuth = getAuth(secondaryApp);
 
 // Konfigurationen
