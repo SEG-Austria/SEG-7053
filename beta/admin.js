@@ -170,7 +170,10 @@ window.updateEmergency = async () => {
             updatedAt: serverTimestamp() 
         });
         alert("Notfall-Status wurde aktualisiert!");
-    } catch (e) { alert("Fehler: " + e.message); }
+    } catch (e) { 
+        console.error("Permission Error:", e);
+        alert("Zugriff verweigert! Prüfe deine Firestore Security Rules."); 
+    }
 };
 
 window.updateNews = async () => {
@@ -293,7 +296,12 @@ onAuthStateChanged(auth, async (user) => {
             loadCurrentEmergency();
         }
     } catch (e) {
-        console.error("Auth-Error:", e);
-        window.location.href = "index.html"; // Redirect on error
+        if (e.code === 'permission-denied') {
+            console.error("Firestore Permission Denied. Check your Rules tab in Firebase Console.");
+            alert("Sicherheitsfehler: Du hast keine Berechtigung für diese Daten.");
+        } else {
+            console.error("Auth-Error:", e);
+            window.location.href = "index.html";
+        }
     }
 });
