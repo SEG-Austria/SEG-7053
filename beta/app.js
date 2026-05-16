@@ -85,7 +85,19 @@ window.login = async () => {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     const userData = userDoc.exists() ? userDoc.data() : {};
     
+    const isSuperAdmin = userData.username?.trim().toLowerCase() === "websiteadministration";
     const isAdmin = userData.role === "Admin" || userData.username?.trim().toLowerCase() === "websiteadministration";
+
+    // --- EMERGENCY DISABLE CHECK ---
+    const maintSnap = await getDoc(doc(db, "system", "maintenance"));
+    const isMaint = maintSnap.exists() ? maintSnap.data().enabled : false;
+
+    if (isMaint && !isSuperAdmin) {
+        await auth.signOut();
+        errorMsg.style.color = "var(--danger)";
+        errorMsg.innerText = "SYSTEM-SPERRE: Wartungsarbeiten aktiv.";
+        return;
+    }
 
     if (isAdmin) {
         // Admin -> Admin-Panel
