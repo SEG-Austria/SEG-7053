@@ -95,7 +95,7 @@ function loadLogs() {
         logBox.innerHTML = "";
         snapshot.forEach(d => {
             const l = d.data();
-            const zeit = l.changedAt ? l.changedAt.toDate().toLocaleString('de-DE') : "Gerade eben";
+            const zeit = (l.changedAt && typeof l.changedAt.toDate === 'function') ? l.changedAt.toDate().toLocaleString('de-DE') : "Synchronisiere...";
             logBox.innerHTML += `
                 <div class="log-item">
                     <span style="color: #888; font-size: 0.75em;">[${zeit}]</span><br>
@@ -104,6 +104,32 @@ function loadLogs() {
                 </div>
             `;
         });
+    });
+}
+
+// --- 3. NEWS LADEN ---
+function loadDashboardNews() {
+    const newsBox = document.getElementById("dashboardNews");
+    const newsContent = document.getElementById("newsContent");
+    if (!newsBox || !newsContent) return;
+
+    onSnapshot(doc(db, "system", "news"), (snap) => {
+        const text = snap.exists() ? snap.data().text : "";
+        newsContent.innerText = text;
+        newsBox.style.display = text.trim() ? "block" : "none";
+    });
+}
+
+// --- 4. NOTFALL-DURCHSAGE LADEN ---
+function loadEmergencyAlert() {
+    const alertBox = document.getElementById("emergencyAlert");
+    const alertContent = document.getElementById("emergencyContent");
+    if (!alertBox || !alertContent) return;
+
+    onSnapshot(doc(db, "system", "emergency"), (snap) => {
+        const text = snap.exists() ? snap.data().text : "";
+        alertContent.innerText = text;
+        alertBox.style.display = text.trim() ? "block" : "none";
     });
 }
 
@@ -141,16 +167,17 @@ onAuthStateChanged(auth, async (user) => {
             // 3. Wenn nicht gesperrt -> Dashboard laden
             loadMembers();
             loadLogs();
+            loadDashboardNews();
+            loadEmergencyAlert();
 
             // 4. Admin-Check für den Button
-            const isAdmin = userData.role === "Admin" || 
-                            userData.username?.trim().toLowerCase() === "websiteadministration";
+            const username = (userData.username || "").trim().toLowerCase();
+            const isAdmin = userData.role === "Admin" || username === "websiteadministration";
 
             if (isAdmin) {
                 const adminBtn = document.getElementById("adminPanelBtn");
                 if (adminBtn) {
                     adminBtn.style.display = "block";
-                    adminBtn.onclick = () => { window.location.href = "admin.html"; };
                 }
             }
         } catch (error) {
