@@ -259,6 +259,15 @@ tbody tr:last-child td {
   max-width: 1200px; /* Max width for the grid */
 }
 
+/* --- MAIN CONTENT WRAPPER --- */
+.main-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-xl) 0;
+}
+
 /* --- MOBILE OPTIMIERUNG (HANDY) --- */
 @media screen and (max-width: 600px) {
   .logo { max-width: 100px; }
@@ -327,11 +336,18 @@ tbody tr:last-child td {
   .admin-page td:nth-of-type(4):before { content: "Status"; }
   .admin-page td:nth-of-type(5):before { content: "Aktion"; }
 }
+
 /* --- LOGIN PAGE SPECIFIC STYLES --- */
 .login-page {
-    justify-content: center;
     min-height: 100vh;
     background: radial-gradient(circle at center, #2d2d2d 0%, #1a1a1a 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+.login-layout {
+    flex-grow: 1;
+    justify-content: center; /* Centers the grid vertically */
 }
 
 .login-box {

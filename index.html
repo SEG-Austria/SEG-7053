@@ -16,27 +16,31 @@
         <span id="betaBadge" class="beta-badge">BETA VERSION</span>
     </div>
 
-    <div class="container news-box" id="newsBox">
-        <h3 class="text-gold" style="margin-top: 0; font-size: 0.9em; letter-spacing: 1px;">📢 ANKÜNDIGUNG</h3>
-        <p id="newsContent" class="text-light" style="margin: 0; font-size: 0.95em; line-height: 1.5;">Lade News...</p>
-    </div>
+    <div class="main-content login-layout">
+        <div class="dashboard-grid" style="max-width: 1000px;">
+            <div class="container news-box" id="newsBox" style="margin: 0; width: 100%;">
+                <h3 class="text-gold" style="margin-top: 0; font-size: 0.9em; letter-spacing: 1px;">📢 ANKÜNDIGUNG</h3>
+                <p id="newsContent" class="text-light" style="margin: 0; font-size: 0.95em; line-height: 1.5;">Lade News...</p>
+            </div>
 
-    <div class="container login-box">
-        <h2 class="text-gold" style="text-align: center; margin-bottom: var(--spacing-xl);">Willkommen</h2>
-        
-        <div class="input-group">
-            <label class="text-gold" style="font-size: 0.8em;">BENUTZERNAME</label>
-            <input type="text" id="loginEmail" placeholder="Dein Vorname...">
+            <div class="container login-box" style="margin: 0; width: 100%;">
+                <h2 class="text-gold" style="text-align: center; margin-bottom: var(--spacing-xl);">Willkommen</h2>
+                
+                <div class="input-group">
+                    <label class="text-gold" style="font-size: 0.8em;">BENUTZERNAME</label>
+                    <input type="text" id="loginEmail" placeholder="Dein Vorname...">
+                </div>
+
+                <div class="input-group">
+                    <label class="text-gold" style="font-size: 0.8em;">PASSWORT</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                </div>
+
+                <button id="loginBtn" onclick="window.login()" class="mt-lg" style="font-size: 1.1em; letter-spacing: 1px;">ANMELDEN</button>
+                
+                <p id="errorMsg" class="text-danger" style="text-align: center; margin-top: var(--spacing-md); font-size: 0.9em; min-height: 1.2em;"></p>
+            </div>
         </div>
-
-        <div class="input-group">
-            <label class="text-gold" style="font-size: 0.8em;">PASSWORT</label>
-            <input type="password" id="loginPassword" placeholder="••••••••">
-        </div>
-
-        <button id="loginBtn" onclick="window.login()" class="mt-lg" style="font-size: 1.1em; letter-spacing: 1px;">ANMELDEN</button>
-        
-        <p id="errorMsg" class="text-danger" style="text-align: center; margin-top: var(--spacing-md); font-size: 0.9em; min-height: 1.2em;"></p>
     </div>
 
     <p class="text-muted" style="margin-top: var(--spacing-xl); font-size: 0.7em; letter-spacing: 2px;">© SEG 2026</p>
