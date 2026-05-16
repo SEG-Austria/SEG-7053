@@ -187,7 +187,7 @@ onAuthStateChanged(auth, async (user) => {
                 const maintActive = snap.exists() ? snap.data().enabled : false;
                 if (maintActive && !isSuperAdmin) {
                     // Immediate expulsion for non-superadmins
-                    alert("ACHTUNG: Systemwartung aktiv. Du wirst abgemeldet.");
+                    alert("ACHTUNG: Systemwartung aktiv. Du kannst dich nicht anmelden. Kontaktiere einen Administrator.");
                     signOut(auth).then(() => {
                         window.location.href = "index.html";
                     });
