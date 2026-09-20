@@ -4,174 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SEG Austria - Dashboard</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body class="dashboard-page">
 
     <div class="header">
-
-        <img
-            src="./modern_logo.png"
-            alt="SEG Logo"
-            class="logo mb-md"
-        >
-
-        <h1 class="text-gold" style="margin: 5px 0;">
-            SEG - Dashboard
-        </h1>
-
-        <span id="betaBadge" class="beta-badge">
-            BETA VERSION
-        </span>
-
-        <p
-            id="welcomeMsg"
-            class="text-muted"
-            style="margin-top: 5px; font-size: 1.1em;"
-        ></p>
-
-        <button
-            id="adminPanelBtn"
-            onclick="window.location.href='admin.html'"
-            class="mt-lg"
-            style="
-                display: none;
-                background: var(--secondary-gold);
-                color: var(--dark-bg);
-                font-weight: bold;
-                border: none;
-                padding: 10px 20px;
-                border-radius: var(--border-radius-sm);
-                cursor: pointer;
-            "
-        >
+        <img src="./modern_logo.png" alt="SEG Logo" class="logo mb-md">
+        <h1 class="text-gold" style="margin: 5px 0;">SEG - Dashboard</h1>
+        <span id="betaBadge" class="beta-badge">BETA VERSION</span>
+        <p id="welcomeMsg" class="text-muted" style="margin-top: 5px; font-size: 1.1em;"></p>
+        <button id="adminPanelBtn" onclick="window.location.href='admin.html'" 
+                class="mt-lg" style="display: none; background: var(--secondary-gold); color: var(--dark-bg); font-weight: bold; border: none; padding: 10px 20px; border-radius: var(--border-radius-sm); cursor: pointer;">
             🛠 ADMIN PANEL
         </button>
-
     </div>
 
-
-    <div
-        class="main-content"
-        style="
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: var(--spacing-xl) 0;
-        "
-    >
-
+    <div class="main-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: var(--spacing-xl) 0;">
+        
         <div class="dashboard-grid">
-
             <!-- Emergency Box -->
-            <div
-                id="emergencyAlert"
-                class="container emergency-box"
-                style="
-                    display: none;
-                    grid-column: 1 / -1;
-                    max-width: 100%;
-                    width: 100%;
-                    margin-top: 0;
-                "
-            >
-                <h3
-                    class="text-danger"
-                    style="
-                        margin-top: 0;
-                        font-size: 1em;
-                        letter-spacing: 1.5px;
-                        font-weight: 800;
-                    "
-                >
-                    🚨 NOTFALL-DURCHSAGE
-                </h3>
-
-                <p
-                    id="emergencyContent"
-                    class="text-light"
-                    style="
-                        margin: 0;
-                        font-size: 1.2em;
-                        line-height: 1.5;
-                        font-weight: 700;
-                    "
-                ></p>
+            <div id="emergencyAlert" class="container emergency-box" style="display: none; grid-column: 1 / -1; max-width: 100%; width: 100%; margin-top: 0;">
+                <h3 class="text-danger" style="margin-top: 0; font-size: 1em; letter-spacing: 1.5px; font-weight: 800;">🚨 NOTFALL-DURCHSAGE</h3>
+                <p id="emergencyContent" class="text-light" style="margin: 0; font-size: 1.2em; line-height: 1.5; font-weight: 700;"></p>
             </div>
-
 
             <!-- News / Alert Box -->
-            <div
-                id="dashboardNews"
-                class="container news-box"
-                style="
-                    display: none;
-                    grid-column: 1 / -1;
-                    max-width: 100%;
-                    width: 100%;
-                    margin-top: 0;
-                "
-            >
-                <h3
-                    class="text-gold"
-                    style="
-                        margin-top: 0;
-                        font-size: 0.9em;
-                        letter-spacing: 1px;
-                    "
-                >
-                    📢 AKTUELLE INFORMATION
-                </h3>
-
-                <p
-                    id="newsContent"
-                    class="text-light"
-                    style="
-                        margin: 0;
-                        font-size: 1.1em;
-                        line-height: 1.5;
-                        font-weight: 500;
-                    "
-                ></p>
+            <div id="dashboardNews" class="container news-box" style="display: none; grid-column: 1 / -1; max-width: 100%; width: 100%; margin-top: 0;">
+                <h3 class="text-gold" style="margin-top: 0; font-size: 0.9em; letter-spacing: 1px;">📢 AKTUELLE INFORMATION</h3>
+                <p id="newsContent" class="text-light" style="margin: 0; font-size: 1.1em; line-height: 1.5; font-weight: 500;"></p>
             </div>
 
-
-            <!-- Attendance -->
-            <div
-                class="container list-container"
-                style="padding: var(--spacing-lg);"
-            >
-
-                <h2
-                    class="text-gold"
-                    style="
-                        margin-top: 0;
-                        margin-bottom: var(--spacing-md);
-                    "
-                >
-                    <span
-                        class="material-icons"
-                        style="
-                            vertical-align: middle;
-                            margin-right: 8px;
-                        "
-                    >
-                        group
-                    </span>
-
+            <div class="container list-container" style="padding: var(--spacing-lg);">
+                <h2 class="text-gold" style="margin-top: 0; margin-bottom: var(--spacing-md);">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">group</span>
                     ANWESENHEIT
                 </h2>
-
                 <table>
-
                     <thead>
                         <tr>
                             <th>NAME</th>
@@ -179,115 +51,27 @@
                             <th>STATUS</th>
                         </tr>
                     </thead>
-
                     <tbody id="memberList">
-                        <tr>
-                            <td
-                                colspan="3"
-                                style="text-align: center;"
-                            >
-                                Lade Daten...
-                            </td>
-                        </tr>
+                        <tr><td colspan="3" style="text-align: center;">Lade Daten...</td></tr>
                     </tbody>
-
                 </table>
-
             </div>
 
-
-            <!-- Activity -->
-            <div
-                class="container log-container"
-                style="padding: var(--spacing-lg);"
-            >
-
-                <h2
-                    class="text-gold"
-                    style="
-                        margin-top: 0;
-                        margin-bottom: var(--spacing-md);
-                    "
-                >
-                    <span
-                        class="material-icons"
-                        style="
-                            vertical-align: middle;
-                            margin-right: 8px;
-                        "
-                    >
-                        history
-                    </span>
-
+            <div class="container log-container" style="padding: var(--spacing-lg);">
+                <h2 class="text-gold" style="margin-top: 0; margin-bottom: var(--spacing-md);">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">history</span>
                     AKTIVITÄT
                 </h2>
-
                 <div id="logList">
                     <!-- Log items will be loaded here -->
                 </div>
-
             </div>
-
         </div>
 
-
-        <!-- Managed by aIT Burgenland -->
-        <div
-            class="managed-by"
-            style="
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                margin-top: var(--spacing-xl);
-                opacity: 0.85;
-            "
-        >
-
-            <span
-                style="
-                    color: var(--text-muted);
-                    font-size: 0.85em;
-                    font-weight: 500;
-                "
-            >
-                Verwaltet von
-            </span>
-
-            <img
-                src="./ait.png"
-                alt="aIT Burgenland"
-                style="
-                    height: 32px;
-                    width: auto;
-                    object-fit: contain;
-                "
-            >
-
-        </div>
-
-
-        <!-- Logout -->
-        <button
-            onclick="window.logout()"
-            class="mt-lg"
-            style="
-                background: transparent;
-                border: 1px solid var(--danger);
-                color: var(--danger);
-                max-width: 300px;
-            "
-        >
-            ABMELDEN
-        </button>
-
+        <button onclick="window.logout()" class="mt-lg" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); max-width: 300px;">ABMELDEN</button>
     </div>
 
-
-    <script
-        type="module"
-        src="dashboard.js"
-    ></script>
+    <script type="module" src="dashboard.js"></script>
 
 </body>
 </html>
